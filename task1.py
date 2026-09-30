@@ -1,3 +1,5 @@
+import matplotlib.pyplot as plt
+
 def read_signal(filename):
 
     indices = []
@@ -40,3 +42,19 @@ def mul_signal(signal, con):
         result.append(value * con)
 
     return result
+
+def plot_cont(n, x):
+    plt.plot(n,x)
+    plt.xlabel("n")
+    plt.ylabel("amp")
+    plt.title("continuous plot")
+    plt.grid()
+    plt.show()
+
+def plot_discrete(n,x):
+    plt.stem(n,x)
+    plt.xlabel("n")
+    plt.ylabel("amp")
+    plt.title("discrete plot")
+    plt.grid()
+    plt.show()
