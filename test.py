@@ -1,62 +1,277 @@
-from task1 import (
-    read_signal,
-    add_signal,
-    mul_signal,
-    plot_continuous,
-    plot_discrete,
-    plot_two_signals,
-    plot_two_discrete_signals
-)
-# Read signals
-signal1 = read_signal("Signal1.txt")
-signal2 = read_signal("Signal2.txt")
-signal3 = read_signal("signal3.txt")
+def ReadSignalFile(file_name):
 
-# Get samples
-samples1 = signal1[3]
-samples2 = signal2[3]
-samples3 = signal3[3]
+    expected_indices = []
+    expected_samples = []
 
-# Test multiplication
-result1 = mul_signal(samples1, 5)
+    with open(file_name, "r") as f:
 
-result2 = mul_signal(samples2, 10)
+        # Skip first 3 header lines
+        f.readline()
+        f.readline()
+        f.readline()
+
+        line = f.readline()
+
+        while line:
+
+            L = line.strip()
+
+            if not L:
+                line = f.readline()
+                continue
+
+            parts = L.split()
+
+            if len(parts) >= 2:
+
+                V1 = int(parts[0])
+                V2 = float(parts[1])
+
+                expected_indices.append(V1)
+                expected_samples.append(V2)
+
+                line = f.readline()
+
+            else:
+                break
+
+    return expected_indices, expected_samples
 
 
-# Test addition
-result3 = add_signal([samples1, samples2])
+# =========================================================
+# ADDITION TEST
+# =========================================================
 
-result4 = add_signal([samples1, samples3])
+def AddSignalSamplesAreEqual(
+    userFirstSignal,
+    userSecondSignal,
+    Your_indices,
+    Your_samples
+):
+
+    if (
+        userFirstSignal == "Signal1.txt"
+        and userSecondSignal == "Signal2.txt"
+    ):
+
+        file_name = "Signal1+signal2.txt"
+
+    elif (
+        userFirstSignal == "Signal1.txt"
+        and userSecondSignal == "Signal3.txt"
+    ):
+
+        file_name = "signal1+signal3.txt"
+
+    else:
+
+        print("Unsupported signal combination.")
+        return
+
+    expected_indices, expected_samples = ReadSignalFile(file_name)
+
+    if (
+        len(expected_samples) != len(Your_samples)
+        or len(expected_indices) != len(Your_indices)
+    ):
+
+        print(
+            "Addition Test case failed, "
+            "your signal has different length from the expected one"
+        )
+
+        return
+
+    for i in range(len(Your_indices)):
+
+        if Your_indices[i] != expected_indices[i]:
+
+            print(
+                "Addition Test case failed, "
+                "your signal has different indices from the expected one"
+            )
+
+            return
+
+    for i in range(len(expected_samples)):
+
+        if abs(Your_samples[i] - expected_samples[i]) < 0.01:
+            continue
+
+        else:
+
+            print(
+                "Addition Test case failed, "
+                "your signal has different values from the expected one"
+            )
+
+            return
+
+    print("Addition Test case passed successfully")
 
 
-indices1 = signal1[2]
-samples1 = signal1[3]
+# =========================================================
+# MULTIPLICATION TEST
+# =========================================================
 
-indices2 = signal2[2]
-samples2 = signal2[3]
+def MultiplySignalByConst(
+    User_Const,
+    Your_indices,
+    Your_samples
+):
 
-plot_continuous(indices1, samples1)
-plot_discrete(indices1, samples1)
+    if User_Const == 5:
 
-plot_two_signals(
-    indices1, samples1,
-    indices2, samples2
-)
+        file_name = "MultiplySignalByConstant-Signal1 - by 5.txt"
 
-plot_two_discrete_signals(
-    indices1, samples1,
-    indices2, samples2
-)
+    elif User_Const == 10:
 
-# Print results
-print("Signal1 x 5:")
-print(result1[:10])
+        file_name = "MultiplySignalByConstant-signal2 - by 10.txt"
 
-print("\nSignal2 x 10:")
-print(result2[:10])
+    else:
 
-print("\nSignal1 + Signal2:")
-print(result3[:10])
+        print("Unsupported constant.")
+        return
 
-print("\nSignal1 + Signal3:")
-print(result4[:10])
+    expected_indices, expected_samples = ReadSignalFile(file_name)
+
+    if (
+        len(expected_samples) != len(Your_samples)
+        or len(expected_indices) != len(Your_indices)
+    ):
+
+        print(
+            "Multiply by "
+            + str(User_Const)
+            + " Test case failed, "
+            "your signal has different length from the expected one"
+        )
+
+        return
+
+    for i in range(len(Your_indices)):
+
+        if Your_indices[i] != expected_indices[i]:
+
+            print(
+                "Multiply by "
+                + str(User_Const)
+                + " Test case failed, "
+                "your signal has different indices from the expected one"
+            )
+
+            return
+
+    for i in range(len(expected_samples)):
+
+        if abs(Your_samples[i] - expected_samples[i]) < 0.01:
+            continue
+
+        else:
+
+            print(
+                "Multiply by "
+                + str(User_Const)
+                + " Test case failed, "
+                "your signal has different values from the expected one"
+            )
+
+            return
+
+    print(
+        "Multiply by "
+        + str(User_Const)
+        + " Test case passed successfully"
+    )
+
+
+# =========================================================
+# GENERAL SIGNAL TEST
+# =========================================================
+
+def SignalSamplesAreEqual(
+    TaskName,
+    output_file_name,
+    Your_indices,
+    Your_samples
+):
+
+    expected_indices = []
+    expected_samples = []
+
+    with open(output_file_name, "r") as f:
+
+        # Skip first 3 header lines
+        f.readline()
+        f.readline()
+        f.readline()
+
+        line = f.readline()
+
+        while line:
+
+            L = line.strip()
+
+            if not L:
+                line = f.readline()
+                continue
+
+            parts = L.split()
+
+            if len(parts) >= 2:
+
+                V1 = int(parts[0])
+                V2 = float(parts[1])
+
+                expected_indices.append(V1)
+                expected_samples.append(V2)
+
+                line = f.readline()
+
+            else:
+                break
+
+    if (
+        len(expected_samples) != len(Your_samples)
+        or len(expected_indices) != len(Your_indices)
+    ):
+
+        print(
+            TaskName
+            + " Test case failed, "
+            "your signal has different length from the expected one"
+        )
+
+        return
+
+    for i in range(len(Your_indices)):
+
+        if Your_indices[i] != expected_indices[i]:
+
+            print(
+                TaskName
+                + " Test case failed, "
+                "your signal has different indices from the expected one"
+            )
+
+            return
+
+    for i in range(len(expected_samples)):
+
+        if abs(Your_samples[i] - expected_samples[i]) < 0.01:
+            continue
+
+        else:
+
+            print(
+                TaskName
+                + " Test case failed, "
+                "your signal has different values from the expected one"
+            )
+
+            return
+
+    print(
+        TaskName
+        + " Test case passed successfully"
+    )

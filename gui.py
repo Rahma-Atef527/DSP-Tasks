@@ -6,7 +6,9 @@ from task1 import (
     add_signal,
     mul_signal,
     plot_continuous,
-    plot_discrete
+    plot_discrete,
+    plot_two_signals,
+    plot_two_discrete_signals
 )
 
 
@@ -16,7 +18,6 @@ from task1 import (
 
 BG_COLOR = "#0F172A"
 CARD_COLOR = "#1E293B"
-CARD_COLOR_2 = "#243449"
 
 TEXT_COLOR = "#F8FAFC"
 SECONDARY_TEXT = "#94A3B8"
@@ -35,7 +36,22 @@ BORDER_COLOR = "#334155"
 
 
 # =========================================================
-# FUNCTIONS
+# SIGNAL FILES
+# =========================================================
+
+SIGNAL_FILES = {
+    "Signal 1": "Signal1.txt",
+    "Signal 2": "Signal2.txt",
+    "Signal 3": "Signal3.txt"
+}
+
+
+def get_signal(signal_name):
+    return read_signal(SIGNAL_FILES[signal_name])
+
+
+# =========================================================
+# DISPLAY ONE SIGNAL
 # =========================================================
 
 def display_signal():
@@ -43,25 +59,82 @@ def display_signal():
     selected_signal = signal_combo.get()
     display_type = display_combo.get()
 
-    if selected_signal == "Signal 1":
-        filename = "Signal1.txt"
-
-    elif selected_signal == "Signal 2":
-        filename = "Signal2.txt"
-
-    else:
-        filename = "Signal3.txt"
-
-    signal = read_signal(filename)
+    signal = get_signal(selected_signal)
 
     indices = signal[2]
     samples = signal[3]
 
     if display_type == "Continuous":
-        plot_continuous(indices, samples)
+
+        plot_continuous(
+            indices,
+            samples,
+            selected_signal + " - Continuous"
+        )
 
     else:
-        plot_discrete(indices, samples)
+
+        plot_discrete(
+            indices,
+            samples,
+            selected_signal + " - Discrete"
+        )
+
+
+# =========================================================
+# DISPLAY TWO SIGNALS
+# =========================================================
+
+def display_two_signals():
+
+    selected_signals = []
+
+    if signal1_display_var.get() == 1:
+        selected_signals.append("Signal 1")
+
+    if signal2_display_var.get() == 1:
+        selected_signals.append("Signal 2")
+
+    if signal3_display_var.get() == 1:
+        selected_signals.append("Signal 3")
+
+    if len(selected_signals) != 2:
+
+        messagebox.showwarning(
+            "Select Two Signals",
+            "Please select exactly two signals."
+        )
+
+        return
+
+    signal_a = get_signal(selected_signals[0])
+    signal_b = get_signal(selected_signals[1])
+
+    indices1 = signal_a[2]
+    samples1 = signal_a[3]
+
+    indices2 = signal_b[2]
+    samples2 = signal_b[3]
+
+    if display_combo.get() == "Continuous":
+
+        plot_two_signals(
+            indices1,
+            samples1,
+            indices2,
+            samples2,
+            selected_signals[0] + " and " + selected_signals[1]
+        )
+
+    else:
+
+        plot_two_discrete_signals(
+            indices1,
+            samples1,
+            indices2,
+            samples2,
+            selected_signals[0] + " and " + selected_signals[1]
+        )
 
 
 # =========================================================
@@ -75,35 +148,26 @@ def add_selected_signals():
 
     if signal1_var.get() == 1:
 
-        signal = read_signal("Signal1.txt")
+        signal = get_signal("Signal 1")
 
         indices = signal[2]
         signals.append(signal[3])
 
     if signal2_var.get() == 1:
 
-        signal = read_signal("Signal2.txt")
+        signal = get_signal("Signal 2")
 
         indices = signal[2]
         signals.append(signal[3])
 
     if signal3_var.get() == 1:
 
-        signal = read_signal("Signal3.txt")
+        signal = get_signal("Signal 3")
 
         indices = signal[2]
         signals.append(signal[3])
 
-    if len(signals) == 0:
-
-        messagebox.showwarning(
-            "No Signals",
-            "Please select at least one signal."
-        )
-
-        return
-
-    if len(signals) == 1:
+    if len(signals) < 2:
 
         messagebox.showwarning(
             "Add Signals",
@@ -112,15 +176,34 @@ def add_selected_signals():
 
         return
 
-    result = add_signal(signals)
+    try:
+
+        result = add_signal(signals)
+
+    except ValueError as error:
+
+        messagebox.showerror(
+            "Addition Error",
+            str(error)
+        )
+
+        return
 
     if display_combo.get() == "Continuous":
 
-        plot_continuous(indices, result)
+        plot_continuous(
+            indices,
+            result,
+            "Addition Result"
+        )
 
     else:
 
-        plot_discrete(indices, result)
+        plot_discrete(
+            indices,
+            result,
+            "Addition Result"
+        )
 
 
 # =========================================================
@@ -131,7 +214,7 @@ def multiply_selected_signal():
 
     selected_signal = signal_combo.get()
 
-    if constant_entry.get() == "":
+    if constant_entry.get().strip() == "":
 
         messagebox.showwarning(
             "Missing Constant",
@@ -153,34 +236,35 @@ def multiply_selected_signal():
 
         return
 
-    if selected_signal == "Signal 1":
-
-        signal = read_signal("Signal1.txt")
-
-    elif selected_signal == "Signal 2":
-
-        signal = read_signal("Signal2.txt")
-
-    else:
-
-        signal = read_signal("Signal3.txt")
+    signal = get_signal(selected_signal)
 
     indices = signal[2]
     samples = signal[3]
 
-    result = mul_signal(samples, constant)
+    result = mul_signal(
+        samples,
+        constant
+    )
 
     if display_combo.get() == "Continuous":
 
-        plot_continuous(indices, result)
+        plot_continuous(
+            indices,
+            result,
+            selected_signal + " x " + str(constant)
+        )
 
     else:
 
-        plot_discrete(indices, result)
+        plot_discrete(
+            indices,
+            result,
+            selected_signal + " x " + str(constant)
+        )
 
 
 # =========================================================
-# BUTTON HOVER EFFECT
+# BUTTON HOVER
 # =========================================================
 
 def button_hover(button, normal_color, hover_color):
@@ -207,8 +291,7 @@ def button_hover(button, normal_color, hover_color):
 window = tk.Tk()
 
 window.title("DSP Signal Processing")
-
-window.geometry("850x720")
+window.geometry("850x850")
 
 window.configure(
     bg=BG_COLOR
@@ -228,7 +311,6 @@ style = ttk.Style()
 
 style.theme_use("clam")
 
-
 style.configure(
     "TCombobox",
     fieldbackground=ENTRY_BG,
@@ -238,7 +320,6 @@ style.configure(
     arrowcolor=ACCENT_COLOR,
     padding=8
 )
-
 
 style.map(
     "TCombobox",
@@ -261,7 +342,7 @@ header_frame = tk.Frame(
 )
 
 header_frame.pack(
-    pady=(30, 15)
+    pady=(25, 10)
 )
 
 
@@ -295,24 +376,22 @@ subtitle.pack(
 
 display_frame = tk.LabelFrame(
     window,
-    text="  📊  SIGNAL DISPLAY  ",
+    text="  SIGNAL DISPLAY  ",
     font=("Arial", 12, "bold"),
     bg=CARD_COLOR,
     fg=ACCENT_COLOR,
     bd=1,
     relief="solid",
     padx=25,
-    pady=20
+    pady=15
 )
 
 display_frame.pack(
     fill="x",
     padx=45,
-    pady=10
+    pady=8
 )
 
-
-# Signal label
 
 signal_label = tk.Label(
     display_frame,
@@ -327,11 +406,9 @@ signal_label.grid(
     column=0,
     sticky="w",
     padx=10,
-    pady=8
+    pady=6
 )
 
-
-# Signal combo
 
 signal_combo = ttk.Combobox(
     display_frame,
@@ -348,13 +425,11 @@ signal_combo.grid(
     row=0,
     column=1,
     padx=15,
-    pady=8
+    pady=6
 )
 
 signal_combo.set("Signal 1")
 
-
-# Display type label
 
 display_label = tk.Label(
     display_frame,
@@ -369,11 +444,9 @@ display_label.grid(
     column=0,
     sticky="w",
     padx=10,
-    pady=8
+    pady=6
 )
 
-
-# Display type combo
 
 display_combo = ttk.Combobox(
     display_frame,
@@ -389,17 +462,15 @@ display_combo.grid(
     row=1,
     column=1,
     padx=15,
-    pady=8
+    pady=6
 )
 
 display_combo.set("Continuous")
 
 
-# Display button
-
 display_button = tk.Button(
     display_frame,
-    text="📈  Display Signal",
+    text="Display Signal",
     font=("Arial", 11, "bold"),
     bg=ACCENT_COLOR,
     fg="#0F172A",
@@ -420,9 +491,126 @@ display_button.grid(
     padx=30
 )
 
-
 button_hover(
     display_button,
+    ACCENT_COLOR,
+    ACCENT_HOVER
+)
+
+
+# =========================================================
+# TWO SIGNALS CARD
+# =========================================================
+
+two_signals_frame = tk.LabelFrame(
+    window,
+    text="  DISPLAY TWO SIGNALS  ",
+    font=("Arial", 12, "bold"),
+    bg=CARD_COLOR,
+    fg=ACCENT_COLOR,
+    bd=1,
+    relief="solid",
+    padx=25,
+    pady=12
+)
+
+two_signals_frame.pack(
+    fill="x",
+    padx=45,
+    pady=8
+)
+
+
+signal1_display_var = tk.IntVar()
+signal2_display_var = tk.IntVar()
+signal3_display_var = tk.IntVar()
+
+
+check_display1 = tk.Checkbutton(
+    two_signals_frame,
+    text="Signal 1",
+    variable=signal1_display_var,
+    font=("Arial", 10),
+    bg=CARD_COLOR,
+    fg=TEXT_COLOR,
+    selectcolor=ENTRY_BG,
+    activebackground=CARD_COLOR,
+    activeforeground=TEXT_COLOR
+)
+
+check_display1.grid(
+    row=0,
+    column=0,
+    padx=20,
+    pady=5
+)
+
+
+check_display2 = tk.Checkbutton(
+    two_signals_frame,
+    text="Signal 2",
+    variable=signal2_display_var,
+    font=("Arial", 10),
+    bg=CARD_COLOR,
+    fg=TEXT_COLOR,
+    selectcolor=ENTRY_BG,
+    activebackground=CARD_COLOR,
+    activeforeground=TEXT_COLOR
+)
+
+check_display2.grid(
+    row=0,
+    column=1,
+    padx=20,
+    pady=5
+)
+
+
+check_display3 = tk.Checkbutton(
+    two_signals_frame,
+    text="Signal 3",
+    variable=signal3_display_var,
+    font=("Arial", 10),
+    bg=CARD_COLOR,
+    fg=TEXT_COLOR,
+    selectcolor=ENTRY_BG,
+    activebackground=CARD_COLOR,
+    activeforeground=TEXT_COLOR
+)
+
+check_display3.grid(
+    row=0,
+    column=2,
+    padx=20,
+    pady=5
+)
+
+
+two_signals_button = tk.Button(
+    two_signals_frame,
+    text="Display Two Signals",
+    font=("Arial", 11, "bold"),
+    bg=ACCENT_COLOR,
+    fg="#0F172A",
+    activebackground=ACCENT_HOVER,
+    activeforeground="#FFFFFF",
+    relief="flat",
+    bd=0,
+    width=25,
+    height=2,
+    cursor="hand2",
+    command=display_two_signals
+)
+
+two_signals_button.grid(
+    row=1,
+    column=0,
+    columnspan=3,
+    pady=(8, 2)
+)
+
+button_hover(
+    two_signals_button,
     ACCENT_COLOR,
     ACCENT_HOVER
 )
@@ -434,20 +622,20 @@ button_hover(
 
 add_frame = tk.LabelFrame(
     window,
-    text="  ➕  ADD SIGNALS  ",
+    text="  ADD SIGNALS  ",
     font=("Arial", 12, "bold"),
     bg=CARD_COLOR,
     fg=SUCCESS_COLOR,
     bd=1,
     relief="solid",
     padx=25,
-    pady=20
+    pady=15
 )
 
 add_frame.pack(
     fill="x",
     padx=45,
-    pady=10
+    pady=8
 )
 
 
@@ -463,18 +651,14 @@ add_label.grid(
     row=0,
     column=0,
     padx=10,
-    pady=8
+    pady=6
 )
 
-
-# Variables
 
 signal1_var = tk.IntVar()
 signal2_var = tk.IntVar()
 signal3_var = tk.IntVar()
 
-
-# Checkbutton style
 
 check1 = tk.Checkbutton(
     add_frame,
@@ -533,11 +717,9 @@ check3.grid(
 )
 
 
-# Add button
-
 add_button = tk.Button(
     add_frame,
-    text="➕  Add Selected Signals",
+    text="Add Selected Signals",
     font=("Arial", 11, "bold"),
     bg=SUCCESS_COLOR,
     fg="#FFFFFF",
@@ -555,9 +737,8 @@ add_button.grid(
     row=1,
     column=0,
     columnspan=4,
-    pady=(18, 5)
+    pady=(12, 2)
 )
-
 
 button_hover(
     add_button,
@@ -572,20 +753,20 @@ button_hover(
 
 multiply_frame = tk.LabelFrame(
     window,
-    text="  ✖  MULTIPLY BY CONSTANT  ",
+    text="  MULTIPLY BY CONSTANT  ",
     font=("Arial", 12, "bold"),
     bg=CARD_COLOR,
     fg=PURPLE_COLOR,
     bd=1,
     relief="solid",
     padx=25,
-    pady=20
+    pady=15
 )
 
 multiply_frame.pack(
     fill="x",
     padx=45,
-    pady=10
+    pady=8
 )
 
 
@@ -601,11 +782,9 @@ constant_label.grid(
     row=0,
     column=0,
     padx=10,
-    pady=8
+    pady=6
 )
 
-
-# Constant entry
 
 constant_entry = tk.Entry(
     multiply_frame,
@@ -622,16 +801,14 @@ constant_entry.grid(
     row=0,
     column=1,
     padx=15,
-    pady=8,
+    pady=6,
     ipady=8
 )
 
 
-# Multiply button
-
 multiply_button = tk.Button(
     multiply_frame,
-    text="✖  Multiply Signal",
+    text="Multiply Signal",
     font=("Arial", 11, "bold"),
     bg=PURPLE_COLOR,
     fg="#FFFFFF",
@@ -650,7 +827,6 @@ multiply_button.grid(
     column=2,
     padx=25
 )
-
 
 button_hover(
     multiply_button,
@@ -672,7 +848,7 @@ footer = tk.Label(
 )
 
 footer.pack(
-    pady=20
+    pady=12
 )
 
 
