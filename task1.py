@@ -3,14 +3,15 @@ import matplotlib.pyplot as plt
 
 def read_signal(filename):
     with open(filename, "r") as file:
-        lines = file.readlines()
+        lines = file.readlines()   #read lines and add them in list
 
-    signal_type = int(lines[0].strip())
+    signal_type = int(lines[0].strip())  #type-> 0:Time Domain ,1:Frequency Domain
     is_periodic = int(lines[1].strip())
-    n1 = int(lines[2].strip())
+    n1 = int(lines[2].strip())   #number of samples or frequency
 
-    indices = []
-    samples = []
+#Empty Lists
+    indices = []   # Time Domain
+    samples = []   #Amplitude
 
     frequencies = []
     phases = []
