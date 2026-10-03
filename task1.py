@@ -16,7 +16,6 @@ def read_signal(filename):
     frequencies = []
     phases = []
 
-    # Time Domain
     if signal_type == 0:
 
         for line in lines[3:3 + n1]:
@@ -28,7 +27,6 @@ def read_signal(filename):
             indices.append(index)
             samples.append(amplitude)
 
-    # Frequency Domain
     elif signal_type == 1:
 
         for line in lines[3:3 + n1]:
@@ -45,9 +43,6 @@ def read_signal(filename):
     return signal_type, is_periodic, indices, samples, frequencies, phases
 
 
-# =========================================================
-# ADDITION
-# =========================================================
 
 def add_signal(signals):
     if len(signals) == 0:
@@ -73,9 +68,6 @@ def add_signal(signals):
     return result
 
 
-# =========================================================
-# MULTIPLICATION
-# =========================================================
 
 def mul_signal(signal, con):
     result = []
@@ -86,9 +78,6 @@ def mul_signal(signal, con):
     return result
 
 
-# =========================================================
-# SINGLE SIGNAL - CONTINUOUS
-# =========================================================
 
 def plot_continuous(indices, samples, title="Continuous Signal"):
 
@@ -106,9 +95,6 @@ def plot_continuous(indices, samples, title="Continuous Signal"):
     plt.show()
 
 
-# =========================================================
-# SINGLE SIGNAL - DISCRETE
-# =========================================================
 
 def plot_discrete(indices, samples, title="Discrete Signal"):
 
@@ -126,9 +112,6 @@ def plot_discrete(indices, samples, title="Discrete Signal"):
     plt.show()
 
 
-# =========================================================
-# TWO SIGNALS - CONTINUOUS
-# =========================================================
 
 def plot_two_signals(
     indices1,
@@ -154,9 +137,6 @@ def plot_two_signals(
     plt.show()
 
 
-# =========================================================
-# TWO SIGNALS - DISCRETE
-# =========================================================
 
 def plot_two_discrete_signals(
     indices1,
