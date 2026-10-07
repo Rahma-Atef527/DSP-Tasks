@@ -1,3 +1,5 @@
+import math
+
 def sub_signal(signal1, signal2):
     if len(signal1) != len(signal2):
         raise ValueError("Signals must have the same number of samples")
@@ -42,3 +44,38 @@ def accumulate_signeal(signal):
         res.append(total)
 
     return res
+
+def quantize_signal(signal, levels = None, bits = None):
+    if len(signal) == 0:
+        return [], [], [], 0
+    if bits is not None:
+        if bits < 1:
+            raise ValueError("bits must be at least 1")
+        levels = 2 ** bits
+    elif levels is not None:
+        if levels < 2:
+            raise ValueError("levels must be at least 2")
+        bits = math.ceil(math.log2(levels))
+    else:
+        raise ValueError("enter levels or bits")
+
+    min_val = min(signal)
+    max_val = max(signal)
+    if max_val == min_val:
+        raise ValueError("constant signal cannot be quantized")
+    delta = (max_val - min_val) / levels
+    quantized = []
+    errors = []
+    encoded = []
+
+    for val in signal:
+        index = int((val - min_val) / delta)
+        if index >= levels:
+            index = levels - 1
+
+        mid = min_val + delta * (index + 0.5)
+        quantized.append(mid)
+        errors.append(mid - val)
+        encoded.append(format(index, "0" + str(bits) + "b"))
+
+    return quantized, errors, encoded, bits
