@@ -1,7 +1,8 @@
+#gui code
 import tkinter as tk
 from tkinter import ttk, messagebox
 
-from task1 import (
+from Task1.task1 import (
     read_signal,
     add_signal,
     mul_signal,
@@ -40,11 +41,10 @@ BORDER_COLOR = "#334155"
 # =========================================================
 
 SIGNAL_FILES = {
-    "Signal 1": "Signal1.txt",
-    "Signal 2": "Signal2.txt",
-    "Signal 3": "Signal3.txt"
+    "Signal 1": "Task1/Signal1.txt",
+    "Signal 2": "Task1/Signal2.txt",
+    "Signal 3": "Task1/Signal3.txt"
 }
-
 
 def get_signal(signal_name):
     return read_signal(SIGNAL_FILES[signal_name])
