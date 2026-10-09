@@ -1,6 +1,7 @@
 import math
 from Task2.QuanTest1 import QuantizationTest1
 from Task2.QuanTest2 import QuantizationTest2
+from Task2.test import SignalSamplesAreEqual
 
 # Read Signal
 def read_signal(filename):
@@ -32,7 +33,7 @@ def sub_signal(signal1, signal2):
         raise ValueError("Signals must have the same number of samples")
     res = []
     for i in range(len(signal1)):
-        res.append(signal1[i] - signal2[i])
+        res.append(abs(signal1[i] - signal2[i]))
     return res
 
 
@@ -140,7 +141,129 @@ if __name__ == "__main__":
     print("=" * 60)
 
 
-# Quantization Test 1
+    # Read indices from the input file
+    def read_indices(filename):
+        indices = []
+
+        with open(filename, "r") as file:
+            file.readline()
+            file.readline()
+            n = int(file.readline())
+
+            for _ in range(n):
+                line = file.readline().strip()
+
+                if line:
+                    indices.append(int(line.split()[0]))
+
+        return indices
+
+
+    # SUBTRACTION TEST 1: Signal1 - Signal2
+    print("\n--- Subtraction Test 1: Signal1 - Signal2 ---")
+
+    signal1 = read_signal("Signal1.txt")
+    signal2 = read_signal("Signal2.txt")
+
+    result = sub_signal(signal1, signal2)
+
+    indices = read_indices("Signal1.txt")
+
+    SignalSamplesAreEqual(
+        "Subtraction Signal1 - Signal2",
+        "signal1-signal2",
+        indices,
+        result
+    )
+
+    # SUBTRACTION TEST 2: Signal1 - Signal3
+    print("\n--- Subtraction Test 2: Signal1 - Signal3 ---")
+
+    signal1 = read_signal("Signal1.txt")
+    signal3 = read_signal("signal3.txt")
+
+    result = sub_signal(signal1, signal3)
+
+    indices = read_indices("Signal1.txt")
+
+    SignalSamplesAreEqual(
+        "Subtraction Signal1 - Signal3",
+        "signal1-signal3",
+        indices,
+        result
+    )
+
+    # Squaring Test
+    print("\n--- Squaring Test ---")
+
+    signal1 = read_signal("Signal1.txt")
+
+    result = square_signal(signal1)
+
+    indices = read_indices("Signal1.txt")
+
+    SignalSamplesAreEqual(
+        "Squaring",
+        "Output squaring signal 1",
+        indices,
+        result
+    )
+
+    # Normalization Test 1: -1 to 1
+    print("\n--- Normalization Test 1 ---")
+
+    signal1 = read_signal("Signal1.txt")
+
+    result = normalize_signal(
+        signal1,
+        1
+    )
+
+    indices = read_indices("Signal1.txt")
+
+    SignalSamplesAreEqual(
+        "Normalization (-1 to 1)",
+        "normalize of signal 1 (from -1 to 1)-- output",
+        indices,
+        result
+    )
+
+    # Normalization Test 2: 0 to 1
+    print("\n--- Normalization Test 2 ---")
+
+    signal2 = read_signal("Signal2.txt")
+
+    result = normalize_signal(
+        signal2,
+        2
+    )
+
+    indices = read_indices("Signal2.txt")
+
+    SignalSamplesAreEqual(
+        "Normalization (0 to 1)",
+        "normlize signal 2 (from 0 to 1 )-- output",
+        indices,
+        result
+    )
+
+    # Accumulation Test
+    print("\n--- Accumulation Test ---")
+
+    signal1 = read_signal("Signal1.txt")
+
+    result = accumulate_signal(signal1)
+
+    indices = read_indices("Signal1.txt")
+
+    SignalSamplesAreEqual(
+        "Accumulation",
+        "output accumulation for signal1",
+        indices,
+        result
+    )
+
+    # Quantization Test 1
 # Number of Bits = 3
 
     print("\n--- Quantization Test 1 ---")

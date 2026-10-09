@@ -24,7 +24,6 @@ from Task2.task2 import (
 # =========================================================
 # COLORS
 # =========================================================
-
 BG_COLOR = "#0F172A"
 CARD_COLOR = "#1E293B"
 
@@ -48,30 +47,23 @@ TEAL_HOVER = "#14B8A6"
 
 ENTRY_BG = "#0F172A"
 BORDER_COLOR = "#334155"
-
-
 # =========================================================
 # SIGNAL FILES
 # =========================================================
-
 SIGNAL_FILES = {
     "Signal 1": "Task1/Signal1.txt",
     "Signal 2": "Task1/Signal2.txt",
     "Signal 3": "Task1/Signal3.txt"
 }
 
-
 def get_signal(signal_name):
 
     return read_signal(
         SIGNAL_FILES[signal_name]
     )
-
-
 # =========================================================
 # COMMON FUNCTIONS
 # =========================================================
-
 def button_hover(
     button,
     normal_color,
@@ -125,12 +117,9 @@ def create_button(
     )
 
     return button
-
-
 # =========================================================
 # SCROLLABLE PAGE
 # =========================================================
-
 def create_scrollable_page(parent):
 
     container = tk.Frame(
@@ -229,12 +218,9 @@ def create_scrollable_page(parent):
     )
 
     return container, content
-
-
 # =========================================================
 # TASK 1 FUNCTIONS
 # =========================================================
-
 def display_signal():
 
     selected_signal = task1_signal_combo.get()
@@ -262,7 +248,6 @@ def display_signal():
             samples,
             selected_signal + " - Discrete"
         )
-
 
 def display_two_signals():
 
@@ -332,7 +317,6 @@ def display_two_signals():
             + " and "
             + selected_signals[1]
         )
-
 
 def add_selected_signals():
 
@@ -415,7 +399,6 @@ def add_selected_signals():
             "Addition Result"
         )
 
-
 def multiply_selected_signal():
 
     selected_signal = task1_signal_combo.get()
@@ -476,11 +459,9 @@ def multiply_selected_signal():
             + str(constant)
         )
 
-
 # =========================================================
 # TASK 2 FUNCTIONS
 # =========================================================
-
 def subtract_selected_signals():
 
     selected_signal1 = subtraction_signal1_combo.get()
@@ -554,7 +535,6 @@ def subtract_selected_signals():
             + selected_signal2
         )
 
-
 def square_selected_signal():
 
     selected_signal = square_signal_combo.get()
@@ -585,7 +565,6 @@ def square_selected_signal():
             result,
             selected_signal + " - Squared"
         )
-
 
 def normalize_selected_signal():
 
@@ -655,7 +634,6 @@ def normalize_selected_signal():
             title
         )
 
-
 def accumulate_selected_signal():
 
     selected_signal = accumulate_signal_combo.get()
@@ -688,12 +666,9 @@ def accumulate_selected_signal():
             selected_signal
             + " - Accumulation"
         )
-
-
 # =========================================================
 # TASK 2 - QUANTIZATION
 # =========================================================
-
 def quantize_selected_signal():
 
     selected_file = quantization_file_combo.get()
@@ -782,12 +757,9 @@ def quantize_selected_signal():
         quantization_info.config(
             text="Quan2_input  •  4 Levels  •  2 Bits"
         )
-
-
 # =========================================================
 # MAIN WINDOW
 # =========================================================
-
 window = tk.Tk()
 
 window.title(
@@ -807,11 +779,9 @@ window.resizable(
     False
 )
 
-
 # =========================================================
 # STYLE
 # =========================================================
-
 style = ttk.Style()
 
 style.theme_use(
@@ -861,12 +831,9 @@ style.map(
         ("readonly", TEXT_COLOR)
     ]
 )
-
-
 # =========================================================
 # TREEVIEW STYLE
 # =========================================================
-
 style.configure(
     "Treeview",
     background=ENTRY_BG,
@@ -894,12 +861,9 @@ style.map(
         ("selected", "#0F172A")
     ]
 )
-
-
 # =========================================================
 # HEADER
 # =========================================================
-
 header_frame = tk.Frame(
     window,
     bg=BG_COLOR
@@ -908,7 +872,6 @@ header_frame = tk.Frame(
 header_frame.pack(
     pady=(15, 5)
 )
-
 
 title = tk.Label(
     header_frame,
@@ -932,12 +895,9 @@ subtitle = tk.Label(
 subtitle.pack(
     pady=(5, 0)
 )
-
-
 # =========================================================
 # NOTEBOOK
 # =========================================================
-
 notebook = ttk.Notebook(
     window
 )
@@ -948,12 +908,9 @@ notebook.pack(
     padx=35,
     pady=10
 )
-
-
 # =========================================================
 # TASK 1 PAGE
 # =========================================================
-
 task1_container = tk.Frame(
     notebook,
     bg=BG_COLOR
@@ -972,12 +929,9 @@ task1_page.pack(
     fill="both",
     expand=True
 )
-
-
 # =========================================================
 # TASK 2 PAGE
 # =========================================================
-
 task2_container = tk.Frame(
     notebook,
     bg=BG_COLOR
@@ -996,12 +950,9 @@ task2_page.pack(
     fill="both",
     expand=True
 )
-
-
 # =========================================================
 # TASK 1 - DISPLAY CARD
 # =========================================================
-
 display_frame = tk.LabelFrame(
     task1_content,
     text="  SIGNAL DISPLAY  ",
@@ -1109,12 +1060,9 @@ display_button.grid(
     rowspan=2,
     padx=30
 )
-
-
 # =========================================================
 # TASK 1 - TWO SIGNALS
 # =========================================================
-
 two_signals_frame = tk.LabelFrame(
     task1_content,
     text="  DISPLAY TWO SIGNALS  ",
@@ -1178,12 +1126,9 @@ two_signals_button.grid(
     columnspan=3,
     pady=10
 )
-
-
 # =========================================================
 # TASK 1 - ADD
 # =========================================================
-
 add_frame = tk.LabelFrame(
     task1_content,
     text="  ADD SIGNALS  ",
@@ -1259,12 +1204,9 @@ add_button.grid(
     columnspan=4,
     pady=12
 )
-
-
 # =========================================================
 # TASK 1 - MULTIPLY
 # =========================================================
-
 multiply_frame = tk.LabelFrame(
     task1_content,
     text="  MULTIPLY BY CONSTANT  ",
@@ -1330,12 +1272,9 @@ multiply_button.grid(
     column=2,
     padx=25
 )
-
-
 # =========================================================
 # TASK 2 - DISPLAY TYPE
 # =========================================================
-
 task2_display_frame = tk.LabelFrame(
     task2_content,
     text="  RESULT DISPLAY  ",
@@ -1385,12 +1324,9 @@ task2_display_combo.pack(
 task2_display_combo.set(
     "Continuous"
 )
-
-
 # =========================================================
 # TASK 2 - SUBTRACTION
 # =========================================================
-
 subtraction_frame = tk.LabelFrame(
     task2_content,
     text="  SUBTRACTION  ",
@@ -1477,12 +1413,9 @@ subtract_button.pack(
     side="left",
     padx=20
 )
-
-
 # =========================================================
 # TASK 2 - SQUARING
 # =========================================================
-
 square_frame = tk.LabelFrame(
     task2_content,
     text="  SQUARING  ",
@@ -1536,12 +1469,9 @@ square_button.pack(
     side="left",
     padx=20
 )
-
-
 # =========================================================
 # TASK 2 - NORMALIZATION
 # =========================================================
-
 normalization_frame = tk.LabelFrame(
     task2_content,
     text="  NORMALIZATION  ",
@@ -1634,12 +1564,9 @@ normalize_button.pack(
     side="left",
     padx=20
 )
-
-
 # =========================================================
 # TASK 2 - ACCUMULATION
 # =========================================================
-
 accumulation_frame = tk.LabelFrame(
     task2_content,
     text="  ACCUMULATION  ",
@@ -1693,12 +1620,9 @@ accumulate_button.pack(
     side="left",
     padx=20
 )
-
-
 # =========================================================
 # TASK 2 - QUANTIZATION
 # =========================================================
-
 quantization_frame = tk.LabelFrame(
     task2_content,
     text="  QUANTIZATION  ",
@@ -1716,12 +1640,9 @@ quantization_frame.pack(
     padx=20,
     pady=8
 )
-
-
 # =========================================================
 # QUANTIZATION CONTROLS
 # =========================================================
-
 quantization_controls = tk.Frame(
     quantization_frame,
     bg=CARD_COLOR
@@ -1791,12 +1712,9 @@ quantize_button.pack(
     side="right",
     padx=5
 )
-
-
 # =========================================================
 # QUANTIZATION TABLE
 # =========================================================
-
 table_frame = tk.Frame(
     quantization_frame,
     bg=CARD_COLOR
@@ -1916,23 +1834,17 @@ quantization_scrollbar.pack(
 quantization_tree.configure(
     yscrollcommand=quantization_scrollbar.set
 )
-
-
 # =========================================================
 # TASK 2 BOTTOM SPACE
 # =========================================================
-
 tk.Frame(
     task2_content,
     bg=BG_COLOR,
     height=30
 ).pack()
-
-
 # =========================================================
 # FOOTER
 # =========================================================
-
 footer = tk.Label(
     window,
     text="Digital Signal Processing • Signal Analysis & Operations",
