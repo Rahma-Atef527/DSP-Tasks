@@ -1,5 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from PIL.ImageOps import mirror
+
 
 def fourier(data, inverse=False):
     data = np.asarray(data, dtype=complex)
@@ -35,3 +37,16 @@ def remove_component(X):
 
 def reconstruct_signal(X):
     return fourier(X, inverse=True).real
+
+def modifiy_components(X, mod):
+    X = np.array(X, dtype=complex)
+    N = len(X)
+    for k, (amp,ph) in mod.items():
+        k = int(k) % N
+        amp = np.abs(X[k]) if amp is None else amp
+        ph = np.angle(X[k]) if ph is None else ph
+        X[k] = amp * np.exp(1j * ph)
+        mirror = (N - k) % N
+        if mirror != k:
+            X[mirror] = amp * np.exp(-1j * ph)
+    return X
