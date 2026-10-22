@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 
+import numpy as np
+
 from Task1.task1 import (
     read_signal,
     add_signal,
@@ -20,6 +22,15 @@ from Task2.task2 import (
     read_signal as read_quantization_signal
 )
 
+from Task3.task3 import (
+    fourier,
+    fourier_transform,
+    get_dominant,
+    modify_components,
+    remove_component,
+    reconstruct_signal,
+    plot_frequency_domain
+)
 
 # =========================================================
 # COLORS
@@ -951,6 +962,27 @@ task2_page.pack(
     expand=True
 )
 # =========================================================
+# TASK 3 PAGE
+# =========================================================
+task3_container = tk.Frame(
+    notebook,
+    bg=BG_COLOR
+)
+
+notebook.add(
+    task3_container,
+    text="  TASK 3  "
+)
+
+task3_page, task3_content = create_scrollable_page(
+    task3_container
+)
+
+task3_page.pack(
+    fill="both",
+    expand=True
+)
+# =========================================================
 # TASK 1 - DISPLAY CARD
 # =========================================================
 display_frame = tk.LabelFrame(
@@ -1842,6 +1874,268 @@ tk.Frame(
     bg=BG_COLOR,
     height=30
 ).pack()
+# =========================================================
+# TASK 3 FUNCTIONS
+# =========================================================
+def get_task3_samples():
+    selected_signal = task3_signal_combo.get()
+    if not selected_signal:
+        raise ValueError("Please select a signal first.")
+    signal_data = get_signal(selected_signal)
+    samples = np.asarray(signal_data[3], dtype=float)
+    if len(samples) == 0:
+        raise ValueError("The selected signal is empty.")
+    return selected_signal, signal_data, samples
+
+
+def run_dft():
+    try:
+        selected_signal, signal_data, samples = get_task3_samples()
+        fs_text = task3_fs_entry.get().strip()
+        fs = float(fs_text)
+        if fs <= 0:
+            raise ValueError("Sampling frequency must be greater than zero.")
+
+        X, frequencies, normalized_amplitude, phase = fourier_transform(samples, fs)
+        task3_current_dft["X"] = X
+        task3_current_dft["frequencies"] = frequencies
+        task3_current_dft["amplitude"] = normalized_amplitude
+        task3_current_dft["phase"] = phase
+        task3_current_dft["signal_name"] = selected_signal
+        task3_current_dft["fs"] = fs
+        task3_result_label.config(
+            text=(f"DFT completed for {selected_signal} | Samples: {len(samples)} | "
+                  f"Sampling frequency: {fs:g} Hz"),
+            fg=SUCCESS_COLOR
+        )
+        plot_frequency_domain(frequencies, normalized_amplitude, phase)
+    except (ValueError, TypeError, KeyError, OSError) as error:
+        messagebox.showerror("Task 3 - DFT", str(error))
+
+
+def show_dominant_frequencies():
+    try:
+        if task3_current_dft["frequencies"] is None:
+            run_dft()
+            if task3_current_dft["frequencies"] is None:
+                return
+        threshold_text = task3_threshold_entry.get().strip()
+        threshold = float(threshold_text)
+        if not 0 <= threshold <= 1:
+            raise ValueError("Threshold must be between 0 and 1.")
+        dominant = get_dominant(
+            task3_current_dft["frequencies"],
+            task3_current_dft["amplitude"],
+            threshold
+        )
+        if len(dominant) == 0:
+            output = f"No dominant frequencies above threshold {threshold:g}."
+        else:
+            output = "Dominant frequencies (Hz): " + ", ".join(f"{freq:g}" for freq in dominant)
+        task3_dominant_label.config(text=output, fg=TEXT_COLOR)
+    except (ValueError, TypeError) as error:
+        messagebox.showerror("Task 3 - Dominant Frequencies", str(error))
+
+
+def modify_dft_component():
+    try:
+        if task3_current_dft["X"] is None:
+            raise ValueError("Run DFT first, then modify a component.")
+        index = int(task3_index_entry.get().strip())
+        amplitude = float(task3_amplitude_entry.get().strip())
+        phase = float(task3_phase_entry.get().strip())
+        modified = modify_components(task3_current_dft["X"], index, amplitude, phase)
+        task3_current_dft["modified_X"] = modified
+        task3_modify_label.config(
+            text=f"Component {index} updated. Amplitude={amplitude:g}, phase={phase:g} radians.",
+            fg=SUCCESS_COLOR
+        )
+    except (ValueError, TypeError) as error:
+        messagebox.showerror("Task 3 - Modify Component", str(error))
+
+
+def reconstruct_current_signal():
+    try:
+        components = task3_current_dft["modified_X"]
+        if components is None:
+            components = task3_current_dft["X"]
+        if components is None:
+            raise ValueError("Run DFT first.")
+        result = reconstruct_signal(components)
+        task3_reconstruction_text.config(state="normal")
+        task3_reconstruction_text.delete("1.0", "end")
+        task3_reconstruction_text.insert(
+            "end",
+            "Index       Reconstructed sample\n" + "-" * 34 + "\n" +
+            "".join(f"{i:<12}{value:.6f}\n" for i, value in enumerate(result))
+        )
+        task3_reconstruction_text.config(state="disabled")
+        task3_reconstruction_label.config(text="Signal reconstructed using IDFT.", fg=SUCCESS_COLOR)
+    except (ValueError, TypeError) as error:
+        messagebox.showerror("Task 3 - IDFT", str(error))
+
+
+def remove_dc_and_reconstruct():
+    try:
+        selected_signal, signal_data, samples = get_task3_samples()
+        X = fourier(samples)
+        X_without_dc = remove_component(X)
+        result = reconstruct_signal(X_without_dc)
+        task3_reconstruction_text.config(state="normal")
+        task3_reconstruction_text.delete("1.0", "end")
+        task3_reconstruction_text.insert(
+            "end",
+            f"DC component removed from {selected_signal}\n\n" +
+            "Index       Reconstructed sample\n" + "-" * 34 + "\n" +
+            "".join(f"{signal_data[2][i]:<12}{value:.6f}\n" for i, value in enumerate(result))
+        )
+        task3_reconstruction_text.config(state="disabled")
+        task3_reconstruction_label.config(
+            text=f"DC component removed and signal reconstructed for {selected_signal}.",
+            fg=SUCCESS_COLOR
+        )
+    except (ValueError, TypeError, KeyError, OSError) as error:
+        messagebox.showerror("Task 3 - Remove DC", str(error))
+
+
+# Stores the latest DFT results for the selected signal.
+task3_current_dft = {
+    "X": None,
+    "frequencies": None,
+    "amplitude": None,
+    "phase": None,
+    "modified_X": None,
+    "signal_name": None,
+    "fs": None
+}
+# =========================================================
+# TASK 3 - FOURIER TRANSFORM CARD
+# =========================================================
+task3_dft_frame = tk.LabelFrame(
+    task3_content,
+    text="  FOURIER TRANSFORM (DFT)  ",
+    font=("Arial", 12, "bold"),
+    bg=CARD_COLOR,
+    fg=ACCENT_COLOR,
+    bd=1,
+    relief="solid",
+    padx=25,
+    pady=20
+)
+task3_dft_frame.pack(fill="x", padx=10, pady=(15, 10))
+
+tk.Label(task3_dft_frame, text="Select Signal", bg=CARD_COLOR, fg=TEXT_COLOR,
+         font=("Arial", 10, "bold")).grid(row=0, column=0, sticky="w", padx=8, pady=8)
+task3_signal_combo = ttk.Combobox(task3_dft_frame, values=list(SIGNAL_FILES.keys()),
+                                  state="readonly", width=20)
+task3_signal_combo.grid(row=0, column=1, sticky="w", padx=8, pady=8)
+task3_signal_combo.set("Signal 1")
+
+tk.Label(task3_dft_frame, text="Sampling Frequency (Hz)", bg=CARD_COLOR, fg=TEXT_COLOR,
+         font=("Arial", 10, "bold")).grid(row=1, column=0, sticky="w", padx=8, pady=8)
+task3_fs_entry = tk.Entry(task3_dft_frame, bg=ENTRY_BG, fg=TEXT_COLOR, insertbackground=TEXT_COLOR,
+                          relief="flat", width=23)
+task3_fs_entry.grid(row=1, column=1, sticky="w", padx=8, pady=8)
+task3_fs_entry.insert(0, "100")
+create_button(task3_dft_frame, "Run DFT & Plot", run_dft, ACCENT_COLOR, ACCENT_HOVER, width=20).grid(
+    row=0, column=2, rowspan=2, padx=15, pady=8)
+task3_result_label = tk.Label(task3_dft_frame, text="Choose a signal and sampling frequency.",
+                              bg=CARD_COLOR, fg=SECONDARY_TEXT, font=("Arial", 10), wraplength=650, justify="left")
+task3_result_label.grid(row=2, column=0, columnspan=3, sticky="w", padx=8, pady=(8, 0))
+
+# =========================================================
+# TASK 3 - DOMINANT FREQUENCIES CARD
+# =========================================================
+task3_dominant_frame = tk.LabelFrame(
+    task3_content,
+    text="  DOMINANT FREQUENCIES  ",
+    font=("Arial", 12, "bold"),
+    bg=CARD_COLOR,
+    fg=PURPLE_COLOR,
+    bd=1,
+    relief="solid",
+    padx=25,
+    pady=20
+)
+task3_dominant_frame.pack(fill="x", padx=10, pady=10)
+tk.Label(task3_dominant_frame, text="Amplitude Threshold (0 to 1)", bg=CARD_COLOR, fg=TEXT_COLOR,
+         font=("Arial", 10, "bold")).grid(row=0, column=0, sticky="w", padx=8, pady=8)
+task3_threshold_entry = tk.Entry(task3_dominant_frame, bg=ENTRY_BG, fg=TEXT_COLOR,
+                                 insertbackground=TEXT_COLOR, relief="flat", width=23)
+task3_threshold_entry.grid(row=0, column=1, sticky="w", padx=8, pady=8)
+task3_threshold_entry.insert(0, "0.5")
+create_button(task3_dominant_frame, "Find Dominant", show_dominant_frequencies,
+              PURPLE_COLOR, PURPLE_HOVER, width=20).grid(row=0, column=2, padx=15, pady=8)
+task3_dominant_label = tk.Label(task3_dominant_frame, text="Run DFT first to analyze dominant frequencies.",
+                                bg=CARD_COLOR, fg=SECONDARY_TEXT, font=("Arial", 10),
+                                wraplength=750, justify="left")
+task3_dominant_label.grid(row=1, column=0, columnspan=3, sticky="w", padx=8, pady=(8, 0))
+
+# =========================================================
+# TASK 3 - MODIFY COMPONENT CARD
+# =========================================================
+task3_modify_frame = tk.LabelFrame(
+    task3_content,
+    text="  MODIFY FREQUENCY COMPONENT  ",
+    font=("Arial", 12, "bold"),
+    bg=CARD_COLOR,
+    fg=ORANGE_COLOR,
+    bd=1,
+    relief="solid",
+    padx=25,
+    pady=20
+)
+task3_modify_frame.pack(fill="x", padx=10, pady=10)
+for col, label in enumerate(("Component Index", "Amplitude", "Phase (radians)")):
+    tk.Label(task3_modify_frame, text=label, bg=CARD_COLOR, fg=TEXT_COLOR,
+             font=("Arial", 10, "bold")).grid(row=0, column=col, sticky="w", padx=8, pady=8)
+task3_index_entry = tk.Entry(task3_modify_frame, bg=ENTRY_BG, fg=TEXT_COLOR, insertbackground=TEXT_COLOR,
+                             relief="flat", width=18)
+task3_index_entry.grid(row=1, column=0, sticky="w", padx=8, pady=8)
+task3_index_entry.insert(0, "1")
+task3_amplitude_entry = tk.Entry(task3_modify_frame, bg=ENTRY_BG, fg=TEXT_COLOR, insertbackground=TEXT_COLOR,
+                                 relief="flat", width=18)
+task3_amplitude_entry.grid(row=1, column=1, sticky="w", padx=8, pady=8)
+task3_amplitude_entry.insert(0, "1")
+task3_phase_entry = tk.Entry(task3_modify_frame, bg=ENTRY_BG, fg=TEXT_COLOR, insertbackground=TEXT_COLOR,
+                             relief="flat", width=18)
+task3_phase_entry.grid(row=1, column=2, sticky="w", padx=8, pady=8)
+task3_phase_entry.insert(0, "0")
+create_button(task3_modify_frame, "Apply Modification", modify_dft_component,
+              ORANGE_COLOR, ORANGE_HOVER, width=22).grid(row=1, column=3, padx=12, pady=8)
+task3_modify_label = tk.Label(task3_modify_frame, text="Run DFT before modifying a component.",
+                              bg=CARD_COLOR, fg=SECONDARY_TEXT, font=("Arial", 10), wraplength=750, justify="left")
+task3_modify_label.grid(row=2, column=0, columnspan=4, sticky="w", padx=8, pady=(8, 0))
+
+# =========================================================
+# TASK 3 - IDFT AND DC REMOVAL CARD
+# =========================================================
+task3_idft_frame = tk.LabelFrame(
+    task3_content,
+    text="  IDFT / REMOVE DC COMPONENT  ",
+    font=("Arial", 12, "bold"),
+    bg=CARD_COLOR,
+    fg=TEAL_COLOR,
+    bd=1,
+    relief="solid",
+    padx=25,
+    pady=20
+)
+task3_idft_frame.pack(fill="x", padx=10, pady=10)
+create_button(task3_idft_frame, "Reconstruct with IDFT", reconstruct_current_signal,
+              TEAL_COLOR, TEAL_HOVER, width=24).pack(side="left", padx=8, pady=8)
+create_button(task3_idft_frame, "Remove DC & Reconstruct", remove_dc_and_reconstruct,
+              SUCCESS_COLOR, SUCCESS_HOVER, width=24).pack(side="left", padx=8, pady=8)
+task3_reconstruction_label = tk.Label(task3_idft_frame, text="Choose an operation to display reconstructed samples.",
+                                      bg=CARD_COLOR, fg=SECONDARY_TEXT, font=("Arial", 10), wraplength=750, justify="left")
+task3_reconstruction_label.pack(anchor="w", padx=8, pady=(8, 5))
+task3_reconstruction_text = tk.Text(task3_idft_frame, height=10, bg=ENTRY_BG, fg=TEXT_COLOR,
+                                    insertbackground=TEXT_COLOR, relief="flat", font=("Consolas", 10), wrap="none")
+task3_reconstruction_text.pack(fill="x", padx=8, pady=8)
+task3_reconstruction_text.config(state="disabled")
+
+tk.Frame(task3_content, bg=BG_COLOR, height=30).pack()
+
 # =========================================================
 # FOOTER
 # =========================================================
