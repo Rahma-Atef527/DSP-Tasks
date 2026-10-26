@@ -32,6 +32,15 @@ from Task3.task3 import (
     plot_frequency_domain
 )
 
+from Task4.task4 import (
+    moving_average,
+    first_derivative,
+    second_derivative,
+    delay_signal,
+    advance_signal,
+    fold_signal,
+    remove_dc_component
+)
 # =========================================================
 # COLORS
 # =========================================================
@@ -983,6 +992,27 @@ task3_page.pack(
     expand=True
 )
 # =========================================================
+# TASK 4 PAGE
+# =========================================================
+task4_container = tk.Frame(
+    notebook,
+    bg=BG_COLOR
+)
+
+notebook.add(
+    task4_container,
+    text="  TASK 4  "
+)
+
+task4_page, task4_content = create_scrollable_page(
+    task4_container
+)
+
+task4_page.pack(
+    fill="both",
+    expand=True
+)
+# =========================================================
 # TASK 1 - DISPLAY CARD
 # =========================================================
 display_frame = tk.LabelFrame(
@@ -1928,6 +1958,7 @@ def show_dominant_frequencies():
             task3_current_dft["amplitude"],
             threshold
         )
+        
         if len(dominant) == 0:
             output = f"No dominant frequencies above threshold {threshold:g}."
         else:
@@ -2135,6 +2166,465 @@ task3_reconstruction_text.pack(fill="x", padx=8, pady=8)
 task3_reconstruction_text.config(state="disabled")
 
 tk.Frame(task3_content, bg=BG_COLOR, height=30).pack()
+
+# =========================================================
+# TASK 4 FUNCTIONS
+# =========================================================
+def get_time_domain_signal():
+    selected_signal = task4_signal_combo.get()
+    if not selected_signal:
+        raise ValueError("Please select a signal first.")
+
+    signal_data = get_signal(selected_signal)
+    indices = list(signal_data[2])
+    samples = list(signal_data[3])
+
+    if len(samples) == 0:
+        raise ValueError("The selected signal is empty.")
+
+    return selected_signal, indices, samples
+
+
+def display_time_domain_result(indices, samples, title):
+    if task4_display_combo.get() == "Continuous":
+        plot_continuous(indices, samples, title)
+    else:
+        plot_discrete(indices, samples, title)
+
+
+def run_moving_average():
+    try:
+        selected_signal, indices, samples = get_time_domain_signal()
+        window_text = task4_window_entry.get().strip()
+        window_size = int(window_text)
+        if window_size <= 0:
+            raise ValueError("The moving average window size must be greater than zero.")
+        if window_size > len(samples):
+            raise ValueError("The window size cannot be greater than the number of samples.")
+
+        result_indices, result_samples = moving_average(indices, samples, window_size)
+        display_time_domain_result(
+            result_indices, result_samples,
+            f"{selected_signal} - Moving Average (window={window_size})"
+        )
+        task4_status_label.config(
+            text=f"Moving average completed for {selected_signal} using window size {window_size}.",
+            fg=SUCCESS_COLOR
+        )
+    except (ValueError, TypeError, KeyError, OSError) as error:
+        messagebox.showerror("Task 4 - Moving Average", str(error))
+
+
+def run_derivative():
+    try:
+        selected_signal, indices, samples = get_time_domain_signal()
+        derivative_type = task4_derivative_combo.get()
+
+        if derivative_type == "First Derivative":
+            result_indices, result_samples = first_derivative(indices, samples)
+        else:
+            result_indices, result_samples = second_derivative(indices, samples)
+
+        display_time_domain_result(
+            result_indices, result_samples,
+            f"{selected_signal} - {derivative_type}"
+        )
+        task4_status_label.config(
+            text=f"{derivative_type} completed for {selected_signal}.",
+            fg=SUCCESS_COLOR
+        )
+    except (ValueError, TypeError, KeyError, OSError, IndexError) as error:
+        messagebox.showerror("Task 4 - Derivative", str(error))
+
+
+def run_delay_advance():
+    try:
+        selected_signal, indices, samples = get_time_domain_signal()
+        k = int(task4_k_entry.get().strip())
+        operation = task4_shift_combo.get()
+
+        if k < 0:
+            raise ValueError("The number of steps k must be zero or greater.")
+
+        if operation == "Delay":
+            result_indices, result_samples = delay_signal(indices, samples, k)
+        else:
+            result_indices, result_samples = advance_signal(indices, samples, k)
+
+        display_time_domain_result(
+            result_indices, result_samples,
+            f"{selected_signal} - {operation} by {k} steps"
+        )
+        task4_status_label.config(
+            text=f"{selected_signal} was {operation.lower()}ed by {k} steps." if operation == "Delay" else f"{selected_signal} was advanced by {k} steps.",
+            fg=SUCCESS_COLOR
+        )
+    except (ValueError, TypeError, KeyError, OSError, IndexError) as error:
+        messagebox.showerror("Task 4 - Delay / Advance", str(error))
+
+
+def run_folding():
+    try:
+        selected_signal, indices, samples = get_time_domain_signal()
+        result_indices, result_samples = fold_signal(indices, samples)
+        display_time_domain_result(
+            result_indices, result_samples,
+            f"{selected_signal} - Folded Signal"
+        )
+        task4_status_label.config(
+            text=f"Folding completed for {selected_signal}.",
+            fg=SUCCESS_COLOR
+        )
+    except (ValueError, TypeError, KeyError, OSError, IndexError) as error:
+        messagebox.showerror("Task 4 - Folding", str(error))
+
+
+def run_folded_shift():
+    try:
+        selected_signal, indices, samples = get_time_domain_signal()
+        k = int(task4_fold_k_entry.get().strip())
+        operation = task4_fold_shift_combo.get()
+
+        if k < 0:
+            raise ValueError("The number of steps k must be zero or greater.")
+
+        folded_indices, folded_samples = fold_signal(indices, samples)
+        if operation == "Delay":
+            result_indices, result_samples = delay_signal(folded_indices, folded_samples, k)
+        else:
+            result_indices, result_samples = advance_signal(folded_indices, folded_samples, k)
+
+        display_time_domain_result(
+            result_indices, result_samples,
+            f"{selected_signal} - Folded then {operation.lower()}ed by {k} steps"
+        )
+        task4_status_label.config(
+            text=f"The folded {selected_signal} was {operation.lower()}ed by {k} steps." if operation == "Delay" else f"The folded {selected_signal} was advanced by {k} steps.",
+            fg=SUCCESS_COLOR
+        )
+    except (ValueError, TypeError, KeyError, OSError, IndexError) as error:
+        messagebox.showerror("Task 4 - Folded Shift", str(error))
+
+
+def run_remove_dc():
+    try:
+        selected_signal, indices, samples = get_time_domain_signal()
+        result_indices, result_samples = remove_dc_component(indices, samples)
+        display_time_domain_result(
+            result_indices, result_samples,
+            f"{selected_signal} - DC Component Removed"
+        )
+        task4_status_label.config(
+            text=f"DC component removed from {selected_signal} in the time domain.",
+            fg=SUCCESS_COLOR
+        )
+    except (ValueError, TypeError, KeyError, OSError, IndexError) as error:
+        messagebox.showerror("Task 4 - Remove DC", str(error))
+
+
+# =========================================================
+# TASK 4 - SIGNAL SELECTION
+# =========================================================
+task4_signal_frame = tk.LabelFrame(
+    task4_content,
+    text="  SIGNAL SELECTION  ",
+    font=("Arial", 12, "bold"),
+    bg=CARD_COLOR,
+    fg=ACCENT_COLOR,
+    bd=1,
+    relief="solid",
+    padx=25,
+    pady=15
+)
+task4_signal_frame.pack(fill="x", padx=10, pady=(15, 10))
+
+tk.Label(
+    task4_signal_frame,
+    text="Select Signal",
+    bg=CARD_COLOR,
+    fg=TEXT_COLOR,
+    font=("Arial", 10, "bold")
+).pack(side="left", padx=(5, 10))
+
+task4_signal_combo = ttk.Combobox(
+    task4_signal_frame,
+    values=list(SIGNAL_FILES.keys()),
+    state="readonly",
+    width=18
+)
+task4_signal_combo.pack(side="left", padx=8)
+task4_signal_combo.set("Signal 1")
+
+tk.Label(
+    task4_signal_frame,
+    text="Display",
+    bg=CARD_COLOR,
+    fg=TEXT_COLOR,
+    font=("Arial", 10, "bold")
+).pack(side="left", padx=(20, 8))
+
+task4_display_combo = ttk.Combobox(
+    task4_signal_frame,
+    values=["Continuous", "Discrete"],
+    state="readonly",
+    width=14
+)
+task4_display_combo.pack(side="left", padx=8)
+task4_display_combo.set("Discrete")
+
+
+# =========================================================
+# TASK 4 - SMOOTHING
+# =========================================================
+task4_smoothing_frame = tk.LabelFrame(
+    task4_content,
+    text="  SMOOTHING - MOVING AVERAGE  ",
+    font=("Arial", 12, "bold"),
+    bg=CARD_COLOR,
+    fg=PURPLE_COLOR,
+    bd=1,
+    relief="solid",
+    padx=25,
+    pady=15
+)
+task4_smoothing_frame.pack(fill="x", padx=10, pady=8)
+
+tk.Label(
+    task4_smoothing_frame,
+    text="Number of points in the window",
+    bg=CARD_COLOR,
+    fg=TEXT_COLOR,
+    font=("Arial", 10, "bold")
+).pack(side="left", padx=8)
+
+task4_window_entry = tk.Entry(
+    task4_smoothing_frame,
+    bg=ENTRY_BG,
+    fg=TEXT_COLOR,
+    insertbackground=TEXT_COLOR,
+    relief="flat",
+    width=12
+)
+task4_window_entry.pack(side="left", padx=10)
+task4_window_entry.insert(0, "3")
+
+create_button(
+    task4_smoothing_frame,
+    "Apply Moving Average",
+    run_moving_average,
+    PURPLE_COLOR,
+    PURPLE_HOVER,
+    width=22
+).pack(side="left", padx=15)
+
+
+# =========================================================
+# TASK 4 - SHARPENING
+# =========================================================
+task4_derivative_frame = tk.LabelFrame(
+    task4_content,
+    text="  SHARPENING - DERIVATIVES  ",
+    font=("Arial", 12, "bold"),
+    bg=CARD_COLOR,
+    fg=ORANGE_COLOR,
+    bd=1,
+    relief="solid",
+    padx=25,
+    pady=15
+)
+task4_derivative_frame.pack(fill="x", padx=10, pady=8)
+
+task4_derivative_combo = ttk.Combobox(
+    task4_derivative_frame,
+    values=["First Derivative", "Second Derivative"],
+    state="readonly",
+    width=22
+)
+task4_derivative_combo.pack(side="left", padx=10)
+task4_derivative_combo.set("First Derivative")
+
+create_button(
+    task4_derivative_frame,
+    "Calculate Derivative",
+    run_derivative,
+    ORANGE_COLOR,
+    ORANGE_HOVER,
+    width=22
+).pack(side="left", padx=15)
+
+
+# =========================================================
+# TASK 4 - DELAY AND ADVANCE
+# =========================================================
+task4_shift_frame = tk.LabelFrame(
+    task4_content,
+    text="  DELAY / ADVANCE SIGNAL  ",
+    font=("Arial", 12, "bold"),
+    bg=CARD_COLOR,
+    fg=TEAL_COLOR,
+    bd=1,
+    relief="solid",
+    padx=25,
+    pady=15
+)
+task4_shift_frame.pack(fill="x", padx=10, pady=8)
+
+task4_shift_combo = ttk.Combobox(
+    task4_shift_frame,
+    values=["Delay", "Advance"],
+    state="readonly",
+    width=14
+)
+task4_shift_combo.pack(side="left", padx=10)
+task4_shift_combo.set("Delay")
+
+tk.Label(
+    task4_shift_frame,
+    text="k steps",
+    bg=CARD_COLOR,
+    fg=TEXT_COLOR,
+    font=("Arial", 10, "bold")
+).pack(side="left", padx=(10, 5))
+
+task4_k_entry = tk.Entry(
+    task4_shift_frame,
+    bg=ENTRY_BG,
+    fg=TEXT_COLOR,
+    insertbackground=TEXT_COLOR,
+    relief="flat",
+    width=10
+)
+task4_k_entry.pack(side="left", padx=8)
+task4_k_entry.insert(0, "1")
+
+create_button(
+    task4_shift_frame,
+    "Apply Shift",
+    run_delay_advance,
+    TEAL_COLOR,
+    TEAL_HOVER,
+    width=18
+).pack(side="left", padx=15)
+
+
+# =========================================================
+# TASK 4 - FOLDING
+# =========================================================
+task4_folding_frame = tk.LabelFrame(
+    task4_content,
+    text="  FOLD SIGNAL  ",
+    font=("Arial", 12, "bold"),
+    bg=CARD_COLOR,
+    fg=PURPLE_COLOR,
+    bd=1,
+    relief="solid",
+    padx=25,
+    pady=15
+)
+task4_folding_frame.pack(fill="x", padx=10, pady=8)
+
+create_button(
+    task4_folding_frame,
+    "Fold Selected Signal",
+    run_folding,
+    PURPLE_COLOR,
+    PURPLE_HOVER,
+    width=22
+).pack(side="left", padx=10)
+
+
+# =========================================================
+# TASK 4 - DELAY / ADVANCE FOLDED SIGNAL
+# =========================================================
+task4_fold_shift_frame = tk.LabelFrame(
+    task4_content,
+    text="  DELAY / ADVANCE FOLDED SIGNAL  ",
+    font=("Arial", 12, "bold"),
+    bg=CARD_COLOR,
+    fg=ORANGE_COLOR,
+    bd=1,
+    relief="solid",
+    padx=25,
+    pady=15
+)
+task4_fold_shift_frame.pack(fill="x", padx=10, pady=8)
+
+task4_fold_shift_combo = ttk.Combobox(
+    task4_fold_shift_frame,
+    values=["Delay", "Advance"],
+    state="readonly",
+    width=14
+)
+task4_fold_shift_combo.pack(side="left", padx=10)
+task4_fold_shift_combo.set("Delay")
+
+tk.Label(
+    task4_fold_shift_frame,
+    text="k steps",
+    bg=CARD_COLOR,
+    fg=TEXT_COLOR,
+    font=("Arial", 10, "bold")
+).pack(side="left", padx=(10, 5))
+
+task4_fold_k_entry = tk.Entry(
+    task4_fold_shift_frame,
+    bg=ENTRY_BG,
+    fg=TEXT_COLOR,
+    insertbackground=TEXT_COLOR,
+    relief="flat",
+    width=10
+)
+task4_fold_k_entry.pack(side="left", padx=8)
+task4_fold_k_entry.insert(0, "1")
+
+create_button(
+    task4_fold_shift_frame,
+    "Shift Folded Signal",
+    run_folded_shift,
+    ORANGE_COLOR,
+    ORANGE_HOVER,
+    width=22
+).pack(side="left", padx=15)
+
+
+# =========================================================
+# TASK 4 - REMOVE DC COMPONENT
+# =========================================================
+task4_dc_frame = tk.LabelFrame(
+    task4_content,
+    text="  REMOVE DC COMPONENT IN TIME DOMAIN  ",
+    font=("Arial", 12, "bold"),
+    bg=CARD_COLOR,
+    fg=TEAL_COLOR,
+    bd=1,
+    relief="solid",
+    padx=25,
+    pady=15
+)
+task4_dc_frame.pack(fill="x", padx=10, pady=8)
+
+create_button(
+    task4_dc_frame,
+    "Remove DC Component",
+    run_remove_dc,
+    TEAL_COLOR,
+    TEAL_HOVER,
+    width=22
+).pack(side="left", padx=10)
+
+
+task4_status_label = tk.Label(
+    task4_content,
+    text="Choose a signal and select a time-domain operation.",
+    bg=BG_COLOR,
+    fg=SECONDARY_TEXT,
+    font=("Arial", 10),
+    wraplength=750,
+    justify="left"
+)
+task4_status_label.pack(anchor="w", padx=20, pady=(12, 20))
+
+tk.Frame(task4_content, bg=BG_COLOR, height=30).pack()
 
 # =========================================================
 # FOOTER

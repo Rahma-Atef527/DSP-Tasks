@@ -20,7 +20,6 @@ def Shift_Fold_Signal(file_name,Your_indices,Your_samples):
                 break
     print("Current Output Test file is: ")
     print(file_name)
-    print("\n")
     if (len(expected_samples)!=len(Your_samples)) and (len(expected_indices)!=len(Your_indices)):
         print("Shift_Fold_Signal Test case failed, your signal have different length from the expected one")
         return
@@ -35,3 +34,4 @@ def Shift_Fold_Signal(file_name,Your_indices,Your_samples):
             print("Shift_Fold_Signal Test case failed, your signal have different values from the expected one")
             return
     print("Shift_Fold_Signal Test case passed successfully")
+    print("\n")
