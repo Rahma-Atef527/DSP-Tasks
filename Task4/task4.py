@@ -42,13 +42,13 @@ def moving_average(indices, samples, window_size):
     result_indices = []
     result_samples = []
 
-    for i in range(len(samples) - window_size + 1):
+    for i in range(len(samples) - window_size + 1): # بحدد بداية window
         total = 0
 
-        for j in range(window_size):
+        for j in range(window_size): #يجمع samples اللى موجودة فى window
             total += samples[i + j]
 
-        average = total / window_size
+        average = total / window_size  # calculate mean
 
         result_indices.append(i)
         result_samples.append(average)
@@ -62,8 +62,8 @@ def first_derivative(indices, samples):
     result_indices = []
     result_samples = []
 
-    for i in range(1, len(samples)):
-        result = samples[i] - samples[i - 1]
+    for i in range(1, len(samples)): # بدانا من 1 لان 0 مفيش حاجة قبلها احسب منها
+        result = samples[i] - samples[i - 1]  #y(n)=x(n)−x(n−1)
 
         result_indices.append(indices[i])
         result_samples.append(result)
@@ -79,7 +79,7 @@ def second_derivative(indices, samples):
     result_indices = []
     result_samples = []
 
-    for i in range(1, len(samples) - 1):
+    for i in range(1, len(samples) - 1):   #y(n)=x(n+1)−2x(n)+x(n−1)
         result = samples[i + 1] - 2 * samples[i] + samples[i - 1]
 
         result_indices.append(indices[i])
@@ -94,8 +94,8 @@ def delay_signal(indices, samples, k):
     result_indices = []
     result_samples = []
 
-    for i in range(len(samples)):
-        result_indices.append(indices[i] + k)
+    for i in range(len(samples)): #y(n)=x(n−k)
+        result_indices.append(indices[i] + k)  #بنزود الـ Index بمقدار k بيتحرك لقدام يمين
         result_samples.append(samples[i])
 
     return result_indices, result_samples
@@ -109,8 +109,8 @@ def advance_signal(indices, samples, k):
     result_indices = []
     result_samples = []
 
-    for i in range(len(samples)):
-        result_indices.append(indices[i] - k)
+    for i in range(len(samples)):  #y(n)=x(n+k)
+        result_indices.append(indices[i] - k)  #لأننا بنقدم الإشارة، فكل Index بيتحرك للخلف
         result_samples.append(samples[i])
 
     return result_indices, result_samples
@@ -123,8 +123,8 @@ def fold_signal(indices, samples):
     result_indices = []
     result_samples = []
 
-    for i in range(len(indices) - 1, -1, -1):
-        result_indices.append(-indices[i])
+    for i in range(len(indices) - 1, -1, -1): #y(n)=x(−n)
+        result_indices.append(-indices[i])  # بنعكس حول الصفر اللى موجود يمين هيروح شمال و هكذا
         result_samples.append(samples[i])
 
     return result_indices, result_samples
@@ -142,16 +142,16 @@ def remove_dc_component(indices, samples):
     for i in range(len(samples)):
         total += samples[i]
 
-    dc_component = total / len(samples)
+    dc_component = total / len(samples) #بنحسب mean
 
     result_indices = []
     result_samples = []
 
-    for i in range(len(samples)):
+    for i in range(len(samples)): #y(n)=x(n)−Mean
         result_indices.append(indices[i])
-        result_samples.append(samples[i] - dc_component)
-
+        result_samples.append(samples[i] - dc_component) # بنطرح كل سيجنل من المين
     return result_indices, result_samples
+
 # =========================================================
 # TEST CASES
 # =========================================================

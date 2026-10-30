@@ -2186,11 +2186,36 @@ def get_time_domain_signal():
 
 
 def display_time_domain_result(indices, samples, title):
+    # Display the signal graph as usual
     if task4_display_combo.get() == "Continuous":
         plot_continuous(indices, samples, title)
     else:
         plot_discrete(indices, samples, title)
 
+    # Update the numerical results title
+    task4_results_title.config(
+        text=f"{title} - First 10 Samples"
+    )
+
+    # Clear previous numerical results
+    for item in task4_results_tree.get_children():
+        task4_results_tree.delete(item)
+
+    # Display the first 10 samples
+    for i in range(min(10, len(samples))):
+        task4_results_tree.insert(
+            "",
+            "end",
+            values=(
+                indices[i],
+                f"{samples[i]:.6f}"
+            )
+        )
+
+    # Update the total number of samples
+    task4_results_count.config(
+        text=f"Total number of samples: {len(samples)}"
+    )
 
 def run_moving_average():
     try:
@@ -2612,7 +2637,91 @@ create_button(
     width=22
 ).pack(side="left", padx=10)
 
+# =========================================================
+# TASK 4 - NUMERICAL RESULTS
+# =========================================================
 
+task4_results_frame = tk.LabelFrame(
+    task4_content,
+    text="  NUMERICAL RESULTS  ",
+    font=("Arial", 12, "bold"),
+    bg=CARD_COLOR,
+    fg=ACCENT_COLOR,
+    bd=1,
+    relief="solid",
+    padx=15,
+    pady=10
+)
+
+task4_results_frame.pack(
+    fill="x",
+    padx=10,
+    pady=10
+)
+
+task4_results_title = tk.Label(
+    task4_results_frame,
+    text="Results will appear here after applying an operation.",
+    bg=CARD_COLOR,
+    fg=TEXT_COLOR,
+    font=("Arial", 10, "bold")
+)
+
+task4_results_title.pack(
+    anchor="w",
+    padx=5,
+    pady=(0, 8)
+)
+
+# Table for displaying numerical samples
+task4_results_tree = ttk.Treeview(
+    task4_results_frame,
+    columns=("Index", "Sample Value"),
+    show="headings",
+    height=10
+)
+
+task4_results_tree.heading(
+    "Index",
+    text="Index"
+)
+
+task4_results_tree.heading(
+    "Sample Value",
+    text="Sample Value"
+)
+
+task4_results_tree.column(
+    "Index",
+    width=150,
+    anchor="center"
+)
+
+task4_results_tree.column(
+    "Sample Value",
+    width=250,
+    anchor="center"
+)
+
+task4_results_tree.pack(
+    fill="x",
+    padx=5,
+    pady=5
+)
+
+task4_results_count = tk.Label(
+    task4_results_frame,
+    text="Total number of samples: 0",
+    bg=CARD_COLOR,
+    fg=SECONDARY_TEXT,
+    font=("Arial", 9)
+)
+
+task4_results_count.pack(
+    anchor="w",
+    padx=5,
+    pady=(5, 0)
+)
 task4_status_label = tk.Label(
     task4_content,
     text="Choose a signal and select a time-domain operation.",
