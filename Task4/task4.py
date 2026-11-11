@@ -1,6 +1,11 @@
+import os
+
+import numpy as np
+
 from Task4.CompareSignals import SignalsAreEqual
 from Task4.Shift_Fold_Signal import Shift_Fold_Signal
 from Task4.DerivativeSignal import DerivativeSignal
+from Task4.ConvTest import ConvTest
 
 # ==========================================
 # Task 4 - Time Domain Operations
@@ -62,7 +67,7 @@ def first_derivative(indices, samples):
     result_indices = []
     result_samples = []
 
-    for i in range(1, len(samples)): # بدانا من 1 لان 0 مفيش حاجة قبلها احسب منها
+    for i in range(1, len(samples)): # بدانا من 1 لان 0 مفيش حاجة قبلها احسب منها و عشان لو حسبنا من 0 هيطلع -1 و اللي هو اول عنصر
         result = samples[i] - samples[i - 1]  #y(n)=x(n)−x(n−1)
 
         result_indices.append(indices[i])
@@ -151,6 +156,51 @@ def remove_dc_component(indices, samples):
         result_indices.append(indices[i])
         result_samples.append(samples[i] - dc_component) # بنطرح كل سيجنل من المين
     return result_indices, result_samples
+
+# ==========================================
+# 8. Convolution
+# ==========================================
+
+def convolve(signal1,signal2,idx1=None,idx2=None):
+    signal1 = [float(v) for v in signal1]
+    signal2 = [float(v) for v in signal2]
+    start1 = 0 if idx1 is None else int(idx1[0])
+    start2 = 0 if idx2 is None else int(idx2[0])
+    N = len(signal1) + len(signal2) - 1
+    y = [0.0] * N
+    for i in range(len(signal1)):
+        for j in range(len(signal2)):
+            y[i + j] += signal1[i] * signal2[j]
+    indices = list(range(start1 + start2, start1 + start2 + N))
+    return indices, y
+
+
+def read_conv_inputs():
+    # Input_conv_Sig1 / Input_conv_Sig2 live in the same folder as this file
+    # (with or without a .txt extension).
+    folder = os.path.dirname(os.path.abspath(__file__))
+    signals = []
+
+    for name in ("Input_conv_Sig1", "Input_conv_Sig2"):
+        path = None
+
+        for candidate in (name, name + ".txt"):
+            full_path = os.path.join(folder, candidate)
+
+            if os.path.isfile(full_path):
+                path = full_path
+                break
+
+        if path is None:
+            raise FileNotFoundError(
+                "Could not find " + name + " in " + folder
+            )
+
+        signals.append(read_signal(path))
+
+    (indices1, samples1), (indices2, samples2) = signals
+
+    return indices1, samples1, indices2, samples2
 
 # =========================================================
 # TEST CASES
@@ -268,6 +318,21 @@ if __name__ == "__main__":
         result_samples
     )
 
+    # ==========================================
+    # Convolution Test
+    # ==========================================
+    print("\n========== Convolution Tests ==========")
 
+    conv_indices1, conv_samples1, conv_indices2, conv_samples2 = read_conv_inputs()
 
+    conv_result_indices, conv_result_samples = convolve(
+        conv_samples1,
+        conv_samples2,
+        conv_indices1,
+        conv_indices2
+    )
 
+    ConvTest(
+        conv_result_indices,
+        conv_result_samples
+    )

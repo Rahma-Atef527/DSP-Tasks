@@ -89,7 +89,7 @@ def get_dominant(frequencies, normalized_amplitude, threshold=0.5):
     frequencies = np.asarray(frequencies)
     normalized_amplitude = np.asarray(normalized_amplitude)
 
-    half = len(frequencies) // 2 + 1
+    half = len(frequencies) // 2 + 1  #take 1 half has DC of + freq
 
     dominant = frequencies[:half][      #if frequencies = [0, 1, 2, 3, 4, 5] and  half = 4 then: result =[0, 1, 2, 3]
         normalized_amplitude[:half] > threshold     #normalized_amplitude = [1.0, 0.2, 0.7, 0.4]  ,threshold = 0.5   , result=[True, False, True, False],
@@ -118,10 +118,10 @@ def modify_components(X, index, amplitude, phase):
     X[index] = amplitude * np.exp(1j * phase)   #X[k]=Ae ^jθ
 
     # Preserve conjugate symmetry for real signals
-    if index != 0 and not (
+    if index != 0 and not (    #symmetry at Amp N/2 ---- anti symmetry at phase N/2
         N % 2 == 0 and index == N // 2
     ):
-        X[-index] = np.conjugate(X[index])
+        X[-index] = np.conjugate(X[index]) # تعكس اشارة الجزء التخيلي
 
     return X
 
@@ -144,7 +144,7 @@ def remove_component(X):        #الـ DC Component هو معامل الـ DFT 
 # RECONSTRUCT SIGNAL USING IDFT
 # =====================================================
 
-def reconstruct_signal(X):
+def reconstruct_signal(X): #بنحول البرامتيرinverse بنخليه ترو
 
     reconstructed = fourier(X, inverse=True)
 

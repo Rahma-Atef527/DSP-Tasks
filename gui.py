@@ -39,8 +39,11 @@ from Task4.task4 import (
     delay_signal,
     advance_signal,
     fold_signal,
-    remove_dc_component
+    remove_dc_component,
+    convolve,
+    read_conv_inputs
 )
+
 # =========================================================
 # COLORS
 # =========================================================
@@ -76,20 +79,21 @@ SIGNAL_FILES = {
     "Signal 3": "Task1/Signal3.txt"
 }
 
-def get_signal(signal_name):
 
+def get_signal(signal_name):
     return read_signal(
         SIGNAL_FILES[signal_name]
     )
+
+
 # =========================================================
 # COMMON FUNCTIONS
 # =========================================================
 def button_hover(
-    button,
-    normal_color,
-    hover_color
+        button,
+        normal_color,
+        hover_color
 ):
-
     button.bind(
         "<Enter>",
         lambda event: button.config(
@@ -106,14 +110,13 @@ def button_hover(
 
 
 def create_button(
-    parent,
-    text,
-    command,
-    color,
-    hover_color,
-    width=20
+        parent,
+        text,
+        command,
+        color,
+        hover_color,
+        width=20
 ):
-
     button = tk.Button(
         parent,
         text=text,
@@ -137,11 +140,12 @@ def create_button(
     )
 
     return button
+
+
 # =========================================================
 # SCROLLABLE PAGE
 # =========================================================
 def create_scrollable_page(parent):
-
     container = tk.Frame(
         parent,
         bg=BG_COLOR
@@ -187,7 +191,6 @@ def create_scrollable_page(parent):
 
     # Update scroll region
     def update_scroll_region(event=None):
-
         canvas.configure(
             scrollregion=canvas.bbox("all")
         )
@@ -199,7 +202,6 @@ def create_scrollable_page(parent):
 
     # Make content width equal to canvas width
     def resize_content(event):
-
         canvas.itemconfig(
             window_id,
             width=event.width
@@ -212,7 +214,6 @@ def create_scrollable_page(parent):
 
     # Mouse wheel
     def on_enter(event):
-
         canvas.bind_all(
             "<MouseWheel>",
             lambda e: canvas.yview_scroll(
@@ -222,7 +223,6 @@ def create_scrollable_page(parent):
         )
 
     def on_leave(event):
-
         canvas.unbind_all(
             "<MouseWheel>"
         )
@@ -238,11 +238,12 @@ def create_scrollable_page(parent):
     )
 
     return container, content
+
+
 # =========================================================
 # TASK 1 FUNCTIONS
 # =========================================================
 def display_signal():
-
     selected_signal = task1_signal_combo.get()
     display_type = task1_display_combo.get()
 
@@ -269,30 +270,26 @@ def display_signal():
             selected_signal + " - Discrete"
         )
 
-def display_two_signals():
 
+def display_two_signals():
     selected_signals = []
 
     if signal1_display_var.get() == 1:
-
         selected_signals.append(
             "Signal 1"
         )
 
     if signal2_display_var.get() == 1:
-
         selected_signals.append(
             "Signal 2"
         )
 
     if signal3_display_var.get() == 1:
-
         selected_signals.append(
             "Signal 3"
         )
 
     if len(selected_signals) != 2:
-
         messagebox.showwarning(
             "Select Two Signals",
             "Please select exactly two signals."
@@ -338,13 +335,12 @@ def display_two_signals():
             + selected_signals[1]
         )
 
-def add_selected_signals():
 
+def add_selected_signals():
     signals = []
     indices = None
 
     if signal1_var.get() == 1:
-
         signal = get_signal(
             "Signal 1"
         )
@@ -356,7 +352,6 @@ def add_selected_signals():
         )
 
     if signal2_var.get() == 1:
-
         signal = get_signal(
             "Signal 2"
         )
@@ -368,7 +363,6 @@ def add_selected_signals():
         )
 
     if signal3_var.get() == 1:
-
         signal = get_signal(
             "Signal 3"
         )
@@ -380,7 +374,6 @@ def add_selected_signals():
         )
 
     if len(signals) < 2:
-
         messagebox.showwarning(
             "Add Signals",
             "Please select at least two signals."
@@ -419,12 +412,11 @@ def add_selected_signals():
             "Addition Result"
         )
 
-def multiply_selected_signal():
 
+def multiply_selected_signal():
     selected_signal = task1_signal_combo.get()
 
     if constant_entry.get().strip() == "":
-
         messagebox.showwarning(
             "Missing Constant",
             "Please enter a constant."
@@ -479,16 +471,15 @@ def multiply_selected_signal():
             + str(constant)
         )
 
+
 # =========================================================
 # TASK 2 FUNCTIONS
 # =========================================================
 def subtract_selected_signals():
-
     selected_signal1 = subtraction_signal1_combo.get()
     selected_signal2 = subtraction_signal2_combo.get()
 
     if selected_signal1 == selected_signal2:
-
         messagebox.showwarning(
             "Subtraction",
             "Please select two different signals."
@@ -511,7 +502,6 @@ def subtract_selected_signals():
     samples2 = signal2[3]
 
     if len(indices1) != len(indices2):
-
         messagebox.showerror(
             "Subtraction Error",
             "Signals must have the same number of samples."
@@ -555,8 +545,8 @@ def subtract_selected_signals():
             + selected_signal2
         )
 
-def square_selected_signal():
 
+def square_selected_signal():
     selected_signal = square_signal_combo.get()
 
     signal = get_signal(
@@ -586,14 +576,13 @@ def square_selected_signal():
             selected_signal + " - Squared"
         )
 
-def normalize_selected_signal():
 
+def normalize_selected_signal():
     selected_signal = normalize_signal_combo.get()
 
     choice = normalization_choice.get()
 
     if choice == 0:
-
         messagebox.showwarning(
             "Normalization",
             "Please select a normalization range."
@@ -627,15 +616,15 @@ def normalize_selected_signal():
     if choice == 1:
 
         title = (
-            selected_signal
-            + " - Normalized (-1 to 1)"
+                selected_signal
+                + " - Normalized (-1 to 1)"
         )
 
     else:
 
         title = (
-            selected_signal
-            + " - Normalized (0 to 1)"
+                selected_signal
+                + " - Normalized (0 to 1)"
         )
 
     if task2_display_combo.get() == "Continuous":
@@ -654,8 +643,8 @@ def normalize_selected_signal():
             title
         )
 
-def accumulate_selected_signal():
 
+def accumulate_selected_signal():
     selected_signal = accumulate_signal_combo.get()
 
     signal = get_signal(
@@ -686,15 +675,15 @@ def accumulate_selected_signal():
             selected_signal
             + " - Accumulation"
         )
+
+
 # =========================================================
 # TASK 2 - QUANTIZATION
 # =========================================================
 def quantize_selected_signal():
-
     selected_file = quantization_file_combo.get()
 
     if selected_file == "":
-
         messagebox.showwarning(
             "Quantization",
             "Please select an input file."
@@ -713,8 +702,8 @@ def quantize_selected_signal():
         levels = 4
 
     file_path = (
-        "Task2/"
-        + selected_file
+            "Task2/"
+            + selected_file
     )
 
     try:
@@ -745,14 +734,12 @@ def quantize_selected_signal():
 
     # Clear old table
     for item in quantization_tree.get_children():
-
         quantization_tree.delete(
             item
         )
 
     # Add new results
     for i in range(len(samples)):
-
         quantization_tree.insert(
             "",
             "end",
@@ -777,6 +764,8 @@ def quantize_selected_signal():
         quantization_info.config(
             text="Quan2_input  •  4 Levels  •  2 Bits"
         )
+
+
 # =========================================================
 # MAIN WINDOW
 # =========================================================
@@ -902,7 +891,6 @@ title = tk.Label(
 )
 
 title.pack()
-
 
 subtitle = tk.Label(
     header_frame,
@@ -1033,7 +1021,6 @@ display_frame.pack(
     pady=10
 )
 
-
 tk.Label(
     display_frame,
     text="Signal",
@@ -1046,7 +1033,6 @@ tk.Label(
     padx=10,
     pady=8
 )
-
 
 task1_signal_combo = ttk.Combobox(
     display_frame,
@@ -1070,7 +1056,6 @@ task1_signal_combo.set(
     "Signal 1"
 )
 
-
 tk.Label(
     display_frame,
     text="Display Type",
@@ -1083,7 +1068,6 @@ tk.Label(
     padx=10,
     pady=8
 )
-
 
 task1_display_combo = ttk.Combobox(
     display_frame,
@@ -1105,7 +1089,6 @@ task1_display_combo.grid(
 task1_display_combo.set(
     "Continuous"
 )
-
 
 display_button = create_button(
     display_frame,
@@ -1143,18 +1126,15 @@ two_signals_frame.pack(
     pady=10
 )
 
-
 signal1_display_var = tk.IntVar()
 signal2_display_var = tk.IntVar()
 signal3_display_var = tk.IntVar()
-
 
 for index, text_value, variable in [
     (0, "Signal 1", signal1_display_var),
     (1, "Signal 2", signal2_display_var),
     (2, "Signal 3", signal3_display_var)
 ]:
-
     tk.Checkbutton(
         two_signals_frame,
         text=text_value,
@@ -1171,7 +1151,6 @@ for index, text_value, variable in [
         padx=35,
         pady=5
     )
-
 
 two_signals_button = create_button(
     two_signals_frame,
@@ -1209,11 +1188,9 @@ add_frame.pack(
     pady=10
 )
 
-
 signal1_var = tk.IntVar()
 signal2_var = tk.IntVar()
 signal3_var = tk.IntVar()
-
 
 tk.Label(
     add_frame,
@@ -1227,13 +1204,11 @@ tk.Label(
     padx=10
 )
 
-
 for index, text_value, variable in [
     (1, "Signal 1", signal1_var),
     (2, "Signal 2", signal2_var),
     (3, "Signal 3", signal3_var)
 ]:
-
     tk.Checkbutton(
         add_frame,
         text=text_value,
@@ -1249,7 +1224,6 @@ for index, text_value, variable in [
         column=index,
         padx=15
     )
-
 
 add_button = create_button(
     add_frame,
@@ -1287,7 +1261,6 @@ multiply_frame.pack(
     pady=10
 )
 
-
 tk.Label(
     multiply_frame,
     text="Constant",
@@ -1299,7 +1272,6 @@ tk.Label(
     column=0,
     padx=10
 )
-
 
 constant_entry = tk.Entry(
     multiply_frame,
@@ -1318,7 +1290,6 @@ constant_entry.grid(
     pady=8,
     ipady=7
 )
-
 
 multiply_button = create_button(
     multiply_frame,
@@ -1355,7 +1326,6 @@ task2_display_frame.pack(
     pady=10
 )
 
-
 tk.Label(
     task2_display_frame,
     text="Display Type",
@@ -1366,7 +1336,6 @@ tk.Label(
     side="left",
     padx=15
 )
-
 
 task2_display_combo = ttk.Combobox(
     task2_display_frame,
@@ -1407,7 +1376,6 @@ subtraction_frame.pack(
     pady=8
 )
 
-
 subtraction_signal1_combo = ttk.Combobox(
     subtraction_frame,
     values=[
@@ -1428,7 +1396,6 @@ subtraction_signal1_combo.set(
     "Signal 1"
 )
 
-
 tk.Label(
     subtraction_frame,
     text="−",
@@ -1439,7 +1406,6 @@ tk.Label(
     side="left",
     padx=5
 )
-
 
 subtraction_signal2_combo = ttk.Combobox(
     subtraction_frame,
@@ -1460,7 +1426,6 @@ subtraction_signal2_combo.pack(
 subtraction_signal2_combo.set(
     "Signal 2"
 )
-
 
 subtract_button = create_button(
     subtraction_frame,
@@ -1496,7 +1461,6 @@ square_frame.pack(
     pady=8
 )
 
-
 square_signal_combo = ttk.Combobox(
     square_frame,
     values=[
@@ -1516,7 +1480,6 @@ square_signal_combo.pack(
 square_signal_combo.set(
     "Signal 1"
 )
-
 
 square_button = create_button(
     square_frame,
@@ -1552,7 +1515,6 @@ normalization_frame.pack(
     pady=8
 )
 
-
 normalize_signal_combo = ttk.Combobox(
     normalization_frame,
     values=[
@@ -1573,11 +1535,9 @@ normalize_signal_combo.set(
     "Signal 1"
 )
 
-
 normalization_choice = tk.IntVar(
     value=0
 )
-
 
 tk.Radiobutton(
     normalization_frame,
@@ -1595,7 +1555,6 @@ tk.Radiobutton(
     padx=8
 )
 
-
 tk.Radiobutton(
     normalization_frame,
     text="0 to 1",
@@ -1611,7 +1570,6 @@ tk.Radiobutton(
     side="left",
     padx=8
 )
-
 
 normalize_button = create_button(
     normalization_frame,
@@ -1647,7 +1605,6 @@ accumulation_frame.pack(
     pady=8
 )
 
-
 accumulate_signal_combo = ttk.Combobox(
     accumulation_frame,
     values=[
@@ -1667,7 +1624,6 @@ accumulate_signal_combo.pack(
 accumulate_signal_combo.set(
     "Signal 1"
 )
-
 
 accumulate_button = create_button(
     accumulation_frame,
@@ -1714,7 +1670,6 @@ quantization_controls.pack(
     fill="x"
 )
 
-
 tk.Label(
     quantization_controls,
     text="Input File",
@@ -1725,7 +1680,6 @@ tk.Label(
     side="left",
     padx=(5, 10)
 )
-
 
 quantization_file_combo = ttk.Combobox(
     quantization_controls,
@@ -1746,7 +1700,6 @@ quantization_file_combo.set(
     "Quan1_input"
 )
 
-
 quantization_info = tk.Label(
     quantization_controls,
     text="Quan1_input  •  3 Bits  •  8 Levels",
@@ -1759,7 +1712,6 @@ quantization_info.pack(
     side="left",
     padx=20
 )
-
 
 quantize_button = create_button(
     quantization_controls,
@@ -1787,7 +1739,6 @@ table_frame.pack(
     pady=(15, 0)
 )
 
-
 quantization_columns = (
     "sample",
     "original",
@@ -1797,14 +1748,12 @@ quantization_columns = (
     "error"
 )
 
-
 quantization_tree = ttk.Treeview(
     table_frame,
     columns=quantization_columns,
     show="headings",
     height=9
 )
-
 
 quantization_tree.heading(
     "sample",
@@ -1835,7 +1784,6 @@ quantization_tree.heading(
     "error",
     text="Error"
 )
-
 
 quantization_tree.column(
     "sample",
@@ -1873,13 +1821,11 @@ quantization_tree.column(
     anchor="center"
 )
 
-
 quantization_tree.pack(
     side="left",
     fill="x",
     expand=True
 )
-
 
 quantization_scrollbar = ttk.Scrollbar(
     table_frame,
@@ -1892,7 +1838,6 @@ quantization_scrollbar.pack(
     fill="y"
 )
 
-
 quantization_tree.configure(
     yscrollcommand=quantization_scrollbar.set
 )
@@ -1904,6 +1849,8 @@ tk.Frame(
     bg=BG_COLOR,
     height=30
 ).pack()
+
+
 # =========================================================
 # TASK 3 FUNCTIONS
 # =========================================================
@@ -1958,7 +1905,7 @@ def show_dominant_frequencies():
             task3_current_dft["amplitude"],
             threshold
         )
-        
+
         if len(dominant) == 0:
             output = f"No dominant frequencies above threshold {threshold:g}."
         else:
@@ -2158,7 +2105,8 @@ create_button(task3_idft_frame, "Reconstruct with IDFT", reconstruct_current_sig
 create_button(task3_idft_frame, "Remove DC & Reconstruct", remove_dc_and_reconstruct,
               SUCCESS_COLOR, SUCCESS_HOVER, width=24).pack(side="left", padx=8, pady=8)
 task3_reconstruction_label = tk.Label(task3_idft_frame, text="Choose an operation to display reconstructed samples.",
-                                      bg=CARD_COLOR, fg=SECONDARY_TEXT, font=("Arial", 10), wraplength=750, justify="left")
+                                      bg=CARD_COLOR, fg=SECONDARY_TEXT, font=("Arial", 10), wraplength=750,
+                                      justify="left")
 task3_reconstruction_label.pack(anchor="w", padx=8, pady=(8, 5))
 task3_reconstruction_text = tk.Text(task3_idft_frame, height=10, bg=ENTRY_BG, fg=TEXT_COLOR,
                                     insertbackground=TEXT_COLOR, relief="flat", font=("Consolas", 10), wrap="none")
@@ -2166,6 +2114,7 @@ task3_reconstruction_text.pack(fill="x", padx=8, pady=8)
 task3_reconstruction_text.config(state="disabled")
 
 tk.Frame(task3_content, bg=BG_COLOR, height=30).pack()
+
 
 # =========================================================
 # TASK 4 FUNCTIONS
@@ -2216,6 +2165,7 @@ def display_time_domain_result(indices, samples, title):
     task4_results_count.config(
         text=f"Total number of samples: {len(samples)}"
     )
+
 
 def run_moving_average():
     try:
@@ -2347,6 +2297,24 @@ def run_remove_dc():
         messagebox.showerror("Task 4 - Remove DC", str(error))
 
 
+def run_convolution():
+    try:
+        indices1, samples1, indices2, samples2 = read_conv_inputs()
+        result_indices, result_samples = convolve(
+            samples1, samples2, indices1, indices2
+        )
+        display_time_domain_result(
+            result_indices, result_samples,
+            "Signal 1 conv * Signal 2 conv - Convolution"
+        )
+        task4_status_label.config(
+            text="Convolution completed for Signal 1 conv and Signal 2 conv.",
+            fg=SUCCESS_COLOR
+        )
+    except (ValueError, TypeError, KeyError, OSError, IndexError) as error:
+        messagebox.showerror("Task 4 - Convolution", str(error))
+
+
 # =========================================================
 # TASK 4 - SIGNAL SELECTION
 # =========================================================
@@ -2397,7 +2365,6 @@ task4_display_combo = ttk.Combobox(
 task4_display_combo.pack(side="left", padx=8)
 task4_display_combo.set("Discrete")
 
-
 # =========================================================
 # TASK 4 - SMOOTHING
 # =========================================================
@@ -2442,7 +2409,6 @@ create_button(
     width=22
 ).pack(side="left", padx=15)
 
-
 # =========================================================
 # TASK 4 - SHARPENING
 # =========================================================
@@ -2476,7 +2442,6 @@ create_button(
     ORANGE_HOVER,
     width=22
 ).pack(side="left", padx=15)
-
 
 # =========================================================
 # TASK 4 - DELAY AND ADVANCE
@@ -2531,7 +2496,6 @@ create_button(
     width=18
 ).pack(side="left", padx=15)
 
-
 # =========================================================
 # TASK 4 - FOLDING
 # =========================================================
@@ -2556,7 +2520,6 @@ create_button(
     PURPLE_HOVER,
     width=22
 ).pack(side="left", padx=10)
-
 
 # =========================================================
 # TASK 4 - DELAY / ADVANCE FOLDED SIGNAL
@@ -2611,7 +2574,6 @@ create_button(
     width=22
 ).pack(side="left", padx=15)
 
-
 # =========================================================
 # TASK 4 - REMOVE DC COMPONENT
 # =========================================================
@@ -2634,6 +2596,39 @@ create_button(
     run_remove_dc,
     TEAL_COLOR,
     TEAL_HOVER,
+    width=22
+).pack(side="left", padx=10)
+
+# =========================================================
+# TASK 4 - CONVOLUTION
+# =========================================================
+task4_conv_frame = tk.LabelFrame(
+    task4_content,
+    text="  CONVOLUTION  ",
+    font=("Arial", 12, "bold"),
+    bg=CARD_COLOR,
+    fg=PURPLE_COLOR,
+    bd=1,
+    relief="solid",
+    padx=25,
+    pady=15
+)
+task4_conv_frame.pack(fill="x", padx=10, pady=8)
+
+tk.Label(
+    task4_conv_frame,
+    text="Signal 1 conv  *  Signal 2 conv",
+    bg=CARD_COLOR,
+    fg=TEXT_COLOR,
+    font=("Arial", 10, "bold")
+).pack(side="left", padx=(5, 15))
+
+create_button(
+    task4_conv_frame,
+    "Convolve Signals",
+    run_convolution,
+    PURPLE_COLOR,
+    PURPLE_HOVER,
     width=22
 ).pack(side="left", padx=10)
 
@@ -2749,7 +2744,6 @@ footer = tk.Label(
 footer.pack(
     pady=5
 )
-
 
 # =========================================================
 # RUN
