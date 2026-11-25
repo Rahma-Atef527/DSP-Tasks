@@ -154,7 +154,7 @@ def remove_dc_component(indices, samples):
 
     for i in range(len(samples)): #y(n)=x(n)−Mean
         result_indices.append(indices[i])
-        result_samples.append(samples[i] - dc_component) # بنطرح كل سيجنل من المين
+        result_samples.append(samples[i] - dc_component) # بنطرح كل سيجنل من المين  عشان نخلي ال mean = 0
     return result_indices, result_samples
 
 # ==========================================
