@@ -44,6 +44,13 @@ from Task4.task4 import (
     read_conv_inputs
 )
 
+from Task5.task5 import (
+    read_signal as read_task5_signal,
+    normalized_cross_correlation,
+    normalized_cross_correlation_periodic,
+    time_delay
+)
+
 # =========================================================
 # COLORS
 # =========================================================
@@ -997,6 +1004,28 @@ task4_page, task4_content = create_scrollable_page(
 )
 
 task4_page.pack(
+    fill="both",
+    expand=True
+)
+# =========================================================
+# TASK 5 PAGE
+# =========================================================
+
+task5_container = tk.Frame(
+    notebook,
+    bg=BG_COLOR
+)
+
+notebook.add(
+    task5_container,
+    text="  TASK 5  "
+)
+
+task5_page, task5_content = create_scrollable_page(
+    task5_container
+)
+
+task5_page.pack(
     fill="both",
     expand=True
 )
@@ -2729,6 +2758,538 @@ task4_status_label = tk.Label(
 task4_status_label.pack(anchor="w", padx=20, pady=(12, 20))
 
 tk.Frame(task4_content, bg=BG_COLOR, height=30).pack()
+
+# =========================================================
+# TASK 5 FUNCTIONS
+# =========================================================
+
+TASK5_FILES = {
+    "Signal 1": "Corr_input signal1",
+    "Signal 2": "Corr_input signal2",
+    "Different Signal 1": "Corrdiffer_input signal1",
+    "Different Signal 2": "Corrdiffer_input signal2"
+}
+
+
+def get_task5_signal(signal_name):
+    filename = "Task5/" + TASK5_FILES[signal_name]
+
+    indices, samples = read_task5_signal(filename)
+
+    return indices, samples
+
+
+def display_correlation_result(indices, samples, title):
+    plot_discrete(
+        indices,
+        samples,
+        title
+    )
+
+    task5_results_title.config(
+        text=title
+    )
+
+    for item in task5_results_tree.get_children():
+        task5_results_tree.delete(item)
+
+    for i in range(len(samples)):
+        task5_results_tree.insert(
+            "",
+            "end",
+            values=(
+                indices[i],
+                f"{samples[i]:.6f}"
+            )
+        )
+
+
+def run_cross_correlation():
+    try:
+
+        signal1_name = task5_signal1_combo.get()
+        signal2_name = task5_signal2_combo.get()
+
+        indices1, signal1 = get_task5_signal(signal1_name)
+        indices2, signal2 = get_task5_signal(signal2_name)
+
+        if len(signal1) == len(signal2):
+
+            lags, result = normalized_cross_correlation(
+                signal1,
+                signal2
+            )
+
+        else:
+
+            lags, result = normalized_cross_correlation_periodic(
+                signal1,
+                signal2
+            )
+
+        display_correlation_result(
+            lags,
+            result,
+            "Normalized Cross-Correlation"
+        )
+
+        task5_status_label.config(
+            text="Cross-Correlation completed successfully.",
+            fg=SUCCESS_COLOR
+        )
+
+    except (ValueError, TypeError, KeyError, OSError) as error:
+
+        messagebox.showerror(
+            "Task 5 - Cross Correlation",
+            str(error)
+        )
+
+
+def run_auto_correlation():
+    try:
+
+        signal_name = task5_auto_combo.get()
+
+        indices, signal = get_task5_signal(signal_name)
+
+        lags, result = normalized_cross_correlation(
+            signal
+        )
+
+        display_correlation_result(
+            lags,
+            result,
+            "Normalized Auto-Correlation"
+        )
+
+        task5_status_label.config(
+            text="Auto-Correlation completed successfully.",
+            fg=SUCCESS_COLOR
+        )
+
+    except (ValueError, TypeError, KeyError, OSError) as error:
+
+        messagebox.showerror(
+            "Task 5 - Auto Correlation",
+            str(error)
+        )
+
+
+def run_time_delay():
+    try:
+
+        signal1_name = task5_delay_signal1_combo.get()
+        signal2_name = task5_delay_signal2_combo.get()
+
+        Ts = float(
+            task5_ts_entry.get().strip()
+        )
+
+        if Ts <= 0:
+            raise ValueError(
+                "Sampling period must be greater than zero."
+            )
+
+        indices1, signal1 = get_task5_signal(signal1_name)
+        indices2, signal2 = get_task5_signal(signal2_name)
+
+        delay, lag = time_delay(
+            signal1,
+            signal2,
+            Ts
+        )
+
+        task5_delay_result.config(
+            text=f"Maximum Correlation Lag (j): {lag}\n"
+                 f"Time Delay: {delay:.6f} seconds",
+            fg=SUCCESS_COLOR
+        )
+
+        task5_status_label.config(
+            text="Time Delay calculated successfully.",
+            fg=SUCCESS_COLOR
+        )
+
+    except (ValueError, TypeError, KeyError, OSError) as error:
+
+        messagebox.showerror(
+            "Task 5 - Time Delay",
+            str(error)
+        )
+
+
+# =========================================================
+# TASK 5 - CROSS CORRELATION CARD
+# =========================================================
+
+task5_correlation_frame = tk.LabelFrame(
+    task5_content,
+    text="  CROSS-CORRELATION  ",
+    font=("Arial", 12, "bold"),
+    bg=CARD_COLOR,
+    fg=ACCENT_COLOR,
+    bd=1,
+    relief="solid",
+    padx=25,
+    pady=20
+)
+
+task5_correlation_frame.pack(
+    fill="x",
+    padx=10,
+    pady=(15, 10)
+)
+
+tk.Label(
+    task5_correlation_frame,
+    text="First Signal",
+    bg=CARD_COLOR,
+    fg=TEXT_COLOR,
+    font=("Arial", 10, "bold")
+).grid(row=0, column=0, padx=10, pady=10)
+
+task5_signal1_combo = ttk.Combobox(
+    task5_correlation_frame,
+    values=list(TASK5_FILES.keys()),
+    state="readonly",
+    width=22
+)
+
+task5_signal1_combo.grid(
+    row=0,
+    column=1,
+    padx=10,
+    pady=10
+)
+
+task5_signal1_combo.set("Signal 1")
+
+tk.Label(
+    task5_correlation_frame,
+    text="Second Signal",
+    bg=CARD_COLOR,
+    fg=TEXT_COLOR,
+    font=("Arial", 10, "bold")
+).grid(row=1, column=0, padx=10, pady=10)
+
+task5_signal2_combo = ttk.Combobox(
+    task5_correlation_frame,
+    values=list(TASK5_FILES.keys()),
+    state="readonly",
+    width=22
+)
+
+task5_signal2_combo.grid(
+    row=1,
+    column=1,
+    padx=10,
+    pady=10
+)
+
+task5_signal2_combo.set("Signal 2")
+
+create_button(
+    task5_correlation_frame,
+    "Calculate Correlation",
+    run_cross_correlation,
+    ACCENT_COLOR,
+    ACCENT_HOVER,
+    width=23
+).grid(
+    row=0,
+    column=2,
+    rowspan=2,
+    padx=20
+)
+
+
+# =========================================================
+# TASK 5 - AUTO CORRELATION CARD
+# =========================================================
+
+task5_auto_frame = tk.LabelFrame(
+    task5_content,
+    text="  AUTO-CORRELATION  ",
+    font=("Arial", 12, "bold"),
+    bg=CARD_COLOR,
+    fg=PURPLE_COLOR,
+    bd=1,
+    relief="solid",
+    padx=25,
+    pady=20
+)
+
+task5_auto_frame.pack(
+    fill="x",
+    padx=10,
+    pady=10
+)
+
+tk.Label(
+    task5_auto_frame,
+    text="Select Signal",
+    bg=CARD_COLOR,
+    fg=TEXT_COLOR,
+    font=("Arial", 10, "bold")
+).pack(
+    side="left",
+    padx=10
+)
+
+task5_auto_combo = ttk.Combobox(
+    task5_auto_frame,
+    values=list(TASK5_FILES.keys()),
+    state="readonly",
+    width=22
+)
+
+task5_auto_combo.pack(
+    side="left",
+    padx=10
+)
+
+task5_auto_combo.set("Signal 1")
+
+create_button(
+    task5_auto_frame,
+    "Calculate Auto-Correlation",
+    run_auto_correlation,
+    PURPLE_COLOR,
+    PURPLE_HOVER,
+    width=25
+).pack(
+    side="left",
+    padx=20
+)
+
+
+# =========================================================
+# TASK 5 - TIME DELAY CARD
+# =========================================================
+
+task5_delay_frame = tk.LabelFrame(
+    task5_content,
+    text="  TIME DELAY ANALYSIS  ",
+    font=("Arial", 12, "bold"),
+    bg=CARD_COLOR,
+    fg=TEAL_COLOR,
+    bd=1,
+    relief="solid",
+    padx=25,
+    pady=20
+)
+
+task5_delay_frame.pack(
+    fill="x",
+    padx=10,
+    pady=10
+)
+
+tk.Label(
+    task5_delay_frame,
+    text="First Signal",
+    bg=CARD_COLOR,
+    fg=TEXT_COLOR,
+    font=("Arial", 10, "bold")
+).grid(row=0, column=0, padx=8, pady=10)
+
+task5_delay_signal1_combo = ttk.Combobox(
+    task5_delay_frame,
+    values=list(TASK5_FILES.keys()),
+    state="readonly",
+    width=20
+)
+
+task5_delay_signal1_combo.grid(
+    row=0,
+    column=1,
+    padx=8,
+    pady=10
+)
+
+task5_delay_signal1_combo.set("Signal 1")
+
+tk.Label(
+    task5_delay_frame,
+    text="Second Signal",
+    bg=CARD_COLOR,
+    fg=TEXT_COLOR,
+    font=("Arial", 10, "bold")
+).grid(row=1, column=0, padx=8, pady=10)
+
+task5_delay_signal2_combo = ttk.Combobox(
+    task5_delay_frame,
+    values=list(TASK5_FILES.keys()),
+    state="readonly",
+    width=20
+)
+
+task5_delay_signal2_combo.grid(
+    row=1,
+    column=1,
+    padx=8,
+    pady=10
+)
+
+task5_delay_signal2_combo.set("Signal 2")
+
+tk.Label(
+    task5_delay_frame,
+    text="Sampling Period (Ts)",
+    bg=CARD_COLOR,
+    fg=TEXT_COLOR,
+    font=("Arial", 10, "bold")
+).grid(row=2, column=0, padx=8, pady=10)
+
+task5_ts_entry = tk.Entry(
+    task5_delay_frame,
+    bg=ENTRY_BG,
+    fg=TEXT_COLOR,
+    insertbackground=TEXT_COLOR,
+    relief="flat",
+    width=22
+)
+
+task5_ts_entry.grid(
+    row=2,
+    column=1,
+    padx=8,
+    pady=10
+)
+
+task5_ts_entry.insert(0, "0.01")
+
+create_button(
+    task5_delay_frame,
+    "Calculate Time Delay",
+    run_time_delay,
+    TEAL_COLOR,
+    TEAL_HOVER,
+    width=23
+).grid(
+    row=0,
+    column=2,
+    rowspan=3,
+    padx=20
+)
+
+task5_delay_result = tk.Label(
+    task5_delay_frame,
+    text="Time delay result will appear here.",
+    bg=CARD_COLOR,
+    fg=SECONDARY_TEXT,
+    font=("Arial", 10, "bold"),
+    justify="left"
+)
+
+task5_delay_result.grid(
+    row=3,
+    column=0,
+    columnspan=3,
+    sticky="w",
+    padx=8,
+    pady=10
+)
+
+
+# =========================================================
+# TASK 5 - NUMERICAL RESULTS
+# =========================================================
+
+task5_results_frame = tk.LabelFrame(
+    task5_content,
+    text="  CORRELATION RESULTS  ",
+    font=("Arial", 12, "bold"),
+    bg=CARD_COLOR,
+    fg=ACCENT_COLOR,
+    bd=1,
+    relief="solid",
+    padx=15,
+    pady=10
+)
+
+task5_results_frame.pack(
+    fill="x",
+    padx=10,
+    pady=10
+)
+
+task5_results_title = tk.Label(
+    task5_results_frame,
+    text="Correlation results will appear here.",
+    bg=CARD_COLOR,
+    fg=TEXT_COLOR,
+    font=("Arial", 10, "bold")
+)
+
+task5_results_title.pack(
+    anchor="w",
+    padx=5,
+    pady=8
+)
+
+task5_results_tree = ttk.Treeview(
+    task5_results_frame,
+    columns=("Lag", "Correlation"),
+    show="headings",
+    height=10
+)
+
+task5_results_tree.heading(
+    "Lag",
+    text="Lag"
+)
+
+task5_results_tree.heading(
+    "Correlation",
+    text="Correlation Value"
+)
+
+task5_results_tree.column(
+    "Lag",
+    width=150,
+    anchor="center"
+)
+
+task5_results_tree.column(
+    "Correlation",
+    width=250,
+    anchor="center"
+)
+
+task5_results_tree.pack(
+    fill="x",
+    padx=5,
+    pady=5
+)
+
+
+# =========================================================
+# TASK 5 - STATUS
+# =========================================================
+
+task5_status_label = tk.Label(
+    task5_content,
+    text="Select signals and choose a correlation operation.",
+    bg=BG_COLOR,
+    fg=SECONDARY_TEXT,
+    font=("Arial", 10),
+    wraplength=750,
+    justify="left"
+)
+
+task5_status_label.pack(
+    anchor="w",
+    padx=20,
+    pady=(12, 20)
+)
+
+tk.Frame(
+    task5_content,
+    bg=BG_COLOR,
+    height=30
+).pack()
 
 # =========================================================
 # FOOTER
